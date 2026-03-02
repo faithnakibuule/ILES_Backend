@@ -2,10 +2,6 @@
 
 > A web-based platform that manages the full internship lifecycle for university students.
 
-**Course:** CSC 1202: Software Development Project | CIT 2026  
-**Supervisor:** Dr. Peter Khisa Wakholi (Ph.D.)  
-**Team:** M5 — Dashboards & Scoring Module  
-
 ---
 
 ## 📚 About the Project
