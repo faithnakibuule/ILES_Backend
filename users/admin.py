@@ -4,6 +4,7 @@ from .models import CustomUser
 # Register your models here.
 @admin.register(CustomUser)
 class CustomUserAdmin(UserAdmin):
+    ordering = ['email']
     fieldsets = UserAdmin.fieldsets + (
         ('Role', {'fields': ('role',)}),
     )
