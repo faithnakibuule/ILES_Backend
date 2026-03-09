@@ -37,9 +37,12 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'apps.core',
     'rest_framework',
     'corsheaders',
 ]
+
+AUTH_USER_MODEL = 'core.CustomUser'
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
@@ -123,10 +126,6 @@ REST_FRAMEWORK ={
     'DEFAULT_AUTHENTICATION_CLASSES': (
         'rest_framework_simplejwt.authentication.JWTAuthentication',
     ),
-}
-
-CORS_ALLOW_ALL_ORIGINS =True
-REST_FRAMEWORK = {
     'DEFAULT_RENDERER_CLASSES': [
         'rest_framework.renderers.JSONRenderer',
         'rest_framework.renderers.BrowsableAPIRenderer',  # Enables the web interface
@@ -135,6 +134,7 @@ REST_FRAMEWORK = {
 
 #CORS SETTINGS
 #CORS allows servers to specify who can access their resources and how they can be accessed.
+CORS_ALLOW_ALL_ORIGINS =True
 CORS_ALLOWED_ORIGINS = [
     "http://localhost:5173",
 ]    
