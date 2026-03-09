@@ -1,7 +1,11 @@
 from rest_framework import serializers
-from .models import Item
+from django.contrib.auth.models import User
+User = get_user_model()
 
-class ItemSerializer(serializers.ModelSerializer):
+
+class UserSerializer(serializers.ModelSerializer):
     class Meta:
-        model = Item
-        fields = '__all__'
+        model = User
+        fields = [id, email, role, full_name]
+        read_only_fields = [id]
+        
