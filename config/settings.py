@@ -37,12 +37,24 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+<<<<<<< HEAD
     'apps.core',
+=======
+    #Third-party
+>>>>>>> 102956a205985d75f106a73f5a4b3e232b62095f
     'rest_framework',
     'corsheaders',
+    #local apps
+    'users',
+    'placements'
 ]
 
+<<<<<<< HEAD
 AUTH_USER_MODEL = 'core.CustomUser'
+=======
+#Custom user model
+AUTH_USER_MODEL = 'users.CustomUser'
+>>>>>>> 102956a205985d75f106a73f5a4b3e232b62095f
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
