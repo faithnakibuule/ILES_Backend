@@ -34,3 +34,8 @@ class RegisterSerializer(serializers.ModelSerializer):
             role = validated_data.get('role','student')
         )            
         return user
+    
+class UserUpdateSerializer(serializers.ModelSerializer):
+    class Meta:
+        model=CustomUser
+        fields = ['first_name','last_name','phone']    
