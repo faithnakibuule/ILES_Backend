@@ -3,6 +3,8 @@ from rest_framework import generics, permissions
 from rest_framework_simplejwt.views import TokenObtainPairView
 from .serializers import CustomUserSerializer, RegisterSerializer,UserUpdateSerializer
 from .models import CustomUser
+from .serializers import CustomTokenObtainPairSerializer
+from rest_framework_simplejwt.views import TokenObtainPairView
 # Create your views here.
 
 class RegisterView(generics.CreateAPIView):#This view allows users to register by creating a new CustomUser instance
@@ -21,3 +23,9 @@ class MeView(generics.RetrieveUpdateAPIView):#This view allows authenticated use
 
     def get_object(self):
         return self.request.user
+    
+    
+class CustomTokenObtainPairView(TokenObtainPairView):
+    serializer_class = CustomTokenObtainPairSerializer
+    permission_classes = [permissions.AllowAny]
+#This view handles user login and token generation using the CustomTokenObtainPairSerializer    

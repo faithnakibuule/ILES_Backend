@@ -1,5 +1,6 @@
 from rest_framework import serializers
 from .models import CustomUser
+from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 
 #shows user data
 class CustomUserSerializer(serializers.ModelSerializer):
@@ -38,4 +39,16 @@ class RegisterSerializer(serializers.ModelSerializer):
 class UserUpdateSerializer(serializers.ModelSerializer):
     class Meta:
         model=CustomUser
-        fields = ['first_name','last_name','phone']    
+        fields = ['first_name','last_name','phone']  
+ #This serializer is used for updating user information, allowing users to update their first name, last name, and phone number.   
+     
+class CustomTokenObtainPairSerializer(TokenObtainPairSerializer):
+    @classmethod
+    def get_token(cls, user):
+        token = super().get_token(user)
+        #Add extra data to the token payload
+        token['role'] = user.role
+        token['full_name'] = f'{user.first_name} {user.last_name}'.strip()
+        
+        return token
+#This custom token serializer extends the default TokenObtainPairSerializer to include additional user information (role and full name) in the JWT token payload              
