@@ -37,17 +37,14 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    #Third-party
+    # Third-party
     'rest_framework',
     'corsheaders',
-    #local apps
+    # Local apps
     'users',
     'placements',
     'logbook',
-
 ]
-
-#Custom user model
 AUTH_USER_MODEL = 'users.CustomUser'
 
 MIDDLEWARE = [
@@ -142,4 +139,5 @@ REST_FRAMEWORK ={
 #CORS allows servers to specify who can access their resources and how they can be accessed.
 CORS_ALLOWED_ORIGINS = [
     "http://localhost:5173",
-]    
+]
+
