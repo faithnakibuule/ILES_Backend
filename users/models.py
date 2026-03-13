@@ -38,6 +38,7 @@ class CustomUser(AbstractUser):
 
     USERNAME_FIELD = 'email'
     REQUIRED_FIELDS = [] #email is required by default, so we don't need to add it here
+    phone = models.CharField(max_length=20, blank=True, null=True) #optional phone number field
     
     objects = CustomUserManager()#tells Django to use our custom manager for user creation and management
     def __str__(self):
