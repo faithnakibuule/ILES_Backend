@@ -29,4 +29,4 @@ class InternshipPlacement(models.Model):
     status = models.CharField(max_length=30, choices=STATUS_CHOICES, default='PENDING')
     
     def __str__(self):
-        return f"{self.student.username} at {self.company_name} ({self.status})"
+        return f"{self.student.email} at {self.company_name} ({self.status})"
