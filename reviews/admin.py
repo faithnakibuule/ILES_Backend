@@ -3,6 +3,4 @@ from .models import EvaluationCriteria, Evaluation
 
 admin.site.register(EvaluationCriteria)
 admin.site.register(Evaluation)
-
-
-# Register your models here.
+#Register of models.
