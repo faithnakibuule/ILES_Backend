@@ -21,4 +21,5 @@ staticfiles/
 
 # OS files
 .DS_Store
-Thumbs.dbdb.sqlite3
+Thumbs.db
+db.sqlite3
