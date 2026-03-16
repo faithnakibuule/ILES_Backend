@@ -35,6 +35,7 @@ class CustomUser(AbstractUser):
         choices = ROLE_CHOICES,
         default = 'student'
     )
+
     USERNAME_FIELD = 'email'
     REQUIRED_FIELDS = [] #email is required by default, so we don't need to add it here
     phone = models.CharField(max_length=20, blank=True, null=True) #optional phone number field

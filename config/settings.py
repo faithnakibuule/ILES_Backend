@@ -37,12 +37,14 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    #Third-party
+    # Third-party
     'rest_framework',
     'corsheaders',
-    #local apps
+    # Local apps
     'users',
-    'placements'
+    'placements',
+    'logbook',
+    'reviews',
 ]
 
 #Custom user model
@@ -127,22 +129,20 @@ USE_TZ = True
 STATIC_URL = 'static/'
 
 REST_FRAMEWORK ={
-    'DEFAULT_AUTHENTICATION_CLASSES': (
+    'DEFAULT_AUTHENTICATION_CLASSES': [
         'rest_framework_simplejwt.authentication.JWTAuthentication',
-    ),
-}
-
-CORS_ALLOW_ALL_ORIGINS =True
-REST_FRAMEWORK = {
+    ],
     'DEFAULT_RENDERER_CLASSES': [
         'rest_framework.renderers.JSONRenderer',
         'rest_framework.renderers.BrowsableAPIRenderer',
     ],
-    'DEFAULT_AUTHENTICATION_CLASSES': [
-        'rest_framework_simplejwt.authentication.JWTAuthentication',
-    ],
     'DEFAULT_PERMISSION_CLASSES': [
         'rest_framework.permissions.IsAuthenticated',
+    ],
+    'DEFAULT PARSER CLASSES': [
+        'rest_framework.parsers.JSONParser',
+        'rest_framework.parsers.FormParser',
+        'rest_framework.parsers.MultiPartParser',
     ],
 }
 
@@ -150,4 +150,5 @@ REST_FRAMEWORK = {
 #CORS allows servers to specify who can access their resources and how they can be accessed.
 CORS_ALLOWED_ORIGINS = [
     "http://localhost:5173",
-]    
+]
+
