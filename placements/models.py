@@ -1,8 +1,4 @@
 from django.db import models
-<<<<<<< HEAD
-
-# Create your models here.
-=======
 from users.models import CustomUser
 
 # Create your models here.
@@ -34,4 +30,3 @@ class InternshipPlacement(models.Model):
     
     def __str__(self):
         return f"{self.student.username} at {self.company_name} ({self.status})"
->>>>>>> 37ef7494ad109a3cf8f1ecfdf572aa9674e4feda
