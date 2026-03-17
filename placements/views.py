@@ -17,7 +17,7 @@ class PlacementViewSet(viewsets.ModelViewSet):
         if user.role == 'admin':#admins can see all placements
             return InternshipPlacement.objects.all()
         elif user.role == 'student':#students can only see their own placements
-            return InternshipPlacement.objects.filter(studemt=user)
+            return InternshipPlacement.objects.filter(student=user)
         elif user.role == 'workplace_supervisor':#supervisors can only see placements they supervise
             return InternshipPlacement.objects.filter(workplace_supervisor=user)
         elif user.role == 'academic_supervisor':#academic supervisors can only see placements they supervise
@@ -37,7 +37,7 @@ class PlacementViewSet(viewsets.ModelViewSet):
         user = request.user
            
         #check if the user has permission to view this placement
-        if user.role == 'student' and isinstance.student != user:
+        if user.role == 'student' and instance.student != user:
             raise PermissionDenied("You can only view your own placements.")
         elif user.role == 'workplace_supervisor' and instance.workplace_supervisor != user:
             raise PermissionDenied("You can only view placements you supervise.")
