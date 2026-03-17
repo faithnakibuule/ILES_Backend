@@ -1,0 +1,60 @@
+# logbook/serializers.py
+
+from rest_framework import serializers
+from .models import WeeklyLog
+
+
+class LogReadSerializer(serializers.ModelSerializer):
+    """
+    Used for GET requests — rich display data including
+    intern name and placement company.
+    """
+
+    # These fields cross model boundaries — they navigate
+    # to related models using dot notation in 'source'
+    intern_name = serializers.CharField(
+        source='intern.get_full_name',  # calls get_full_name() on the related CustomUser
+        read_only=True
+    )
+    placement_company = serializers.CharField(
+        source='placement.company_name',  # reads company_name from InternshipPlacement
+        read_only=True
+    )
+
+    class Meta:#Tells DRF which model to serialize and which fields to include
+        model = WeeklyLog
+        fields = [
+            'id',
+            'intern_name',          # from CustomUser (via source)
+            'placement_company',    # from InternshipPlacement (via source)
+            'week_number',
+            'activities',
+            'learning_points',
+            'status',
+            'submitted_at',
+        ]
+        read_only_fields = fields   # nothing can be written through this serializer
+
+
+class LogWriteSerializer(serializers.ModelSerializer):
+    """
+    Used for POST/PATCH requests — only the fields
+    the intern is allowed to edit.
+    """
+
+    def validate_week_number(self, value):
+        # DRF automatically calls validate_<field_name> before saving
+        if value < 1 or value > 12:
+            raise serializers.ValidationError(
+                "Week number must be between 1 and 12."
+            )
+        return value  # always return value if valid — or data gets swallowed
+
+    class Meta:
+        model = WeeklyLog
+        fields = [
+            'week_number',
+            'activities',
+            'learning_points',
+        ]
+        # No read_only_fields — this serializer is meant for writing
