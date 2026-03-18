@@ -1,39 +1,47 @@
 from django.shortcuts import render
-
-# placements/views.py
-# Contains the view that handles GET /api/placements/my/
-# Returns the active placement for the authenticated student.
-
-from rest_framework.views import APIView
-from rest_framework.response import Response
-from rest_framework import status
-from rest_framework.permissions import IsAuthenticated
+#import exceptions to handle permission issues
+from rest_framework.exceptions import PermissionDenied
+#import viewsets to create a viewser for the InternshipPlcement model
+from rest_framework import viewsets,permissions
+#import the InternshipPlacement model and the PlacementSerializer to serialize the data
 from .models import InternshipPlacement
 from .serializers import PlacementSerializer
 
-
-class MyPlacementView(APIView):
-    # IsAuthenticated means: only logged-in users can call this endpoint.
-    # If no valid token is sent, Django returns 401 automatically.
-    permission_classes = [IsAuthenticated]
-
-    def get(self, request):
-        try:
-            # request.user is the logged-in student — Django knows this
-            # from the Bearer token sent in the request header.
-            # We look for their placement where status is ACTIVE.
-            placement = InternshipPlacement.objects.get(
-                student=request.user,
-                status='ACTIVE'
-            )
-            serializer = PlacementSerializer(placement)
-            return Response(serializer.data)
-
-        except InternshipPlacement.DoesNotExist:
-            # No active placement found for this student
-            return Response(
-                {'detail': 'No active placement found.'},
-                status=status.HTTP_404_NOT_FOUND
-            )
-
-# Create your views here.
+class PlacementViewSet(viewsets.ModelViewSet):
+    serializer_class = PlacementSerializer # Every request through this ViewSet uses PlacementSerializer
+    permission_classes = [permissions.IsAuthenticated]#only logged in users can access this viewset
+    
+    def get_queryset(self):
+        user = self.request.user#get the user making the request from the jwt token
+        
+        if user.role == 'admin':#admins can see all placements
+            return InternshipPlacement.objects.all()
+        elif user.role == 'student':#students can only see their own placements
+            return InternshipPlacement.objects.filter(student=user)
+        elif user.role == 'workplace_supervisor':#supervisors can only see placements they supervise
+            return InternshipPlacement.objects.filter(workplace_supervisor=user)
+        elif user.role == 'academic_supervisor':#academic supervisors can only see placements they supervise
+            return InternshipPlacement.objects.filter(academic_supervisor=user)
+        else:
+            return InternshipPlacement.objects.none()#other users cannot see any placements
+    
+    def perform_create(self, serializer):
+        user = self.request.user
+        if user.role != 'admin':#only admins can create placements
+            raise PermissionDenied("Only admins can create placements.")
+        serializer.save()
+        
+    def retrieve(self, request, *args, **kwargs):
+        #fetch the specific placement instance being requested
+        instance = self.get_object()
+        user = request.user
+           
+        #check if the user has permission to view this placement
+        if user.role == 'student' and instance.student != user:
+            raise PermissionDenied("You can only view your own placements.")
+        elif user.role == 'workplace_supervisor' and instance.workplace_supervisor != user:
+            raise PermissionDenied("You can only view placements you supervise.")
+        elif user.role == 'academic_supervisor' and instance.academic_supervisor != user:
+            raise PermissionDenied("You can only view placements you supervise.")
+        return super().retrieve(request, *args, **kwargs)
+           

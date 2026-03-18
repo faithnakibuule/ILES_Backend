@@ -23,10 +23,20 @@ class InternshipPlacement(models.Model):
         related_name = 'supervised_placements',
         limit_choices_to={'role':'workplace_supervisor'}
     )
+    
+    academic_supervisor = models.ForeignKey(
+    CustomUser,
+    on_delete=models.SET_NULL,
+    related_name='academic_supervised_placements',
+    limit_choices_to={'role': 'academic_supervisor'},
+    null=True,
+    blank=True
+    )
+    
     company_name = models.CharField(max_length=255)
     start_date = models.DateField()
     end_date = models.DateField()
     status = models.CharField(max_length=30, choices=STATUS_CHOICES, default='PENDING')
     
     def __str__(self):
-        return f"{self.student.username} at {self.company_name} ({self.status})"
+        return f"{self.student.email} at {self.company_name} ({self.status})"

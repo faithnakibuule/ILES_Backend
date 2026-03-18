@@ -1,10 +1,13 @@
-# placements/urls.py
-# Registers the URL patterns for the placements app.
+from django.urls import path, include
+from rest_framework.routers import DefaultRouter
+from .views import PlacementViewSet
 
-from django.urls import path
-from .views import MyPlacementView
+router = DefaultRouter()
+
+# One line generates all 5 CRUD endpoints automatically
+# basename required because we use custom get_queryset
+router.register(r'placements', PlacementViewSet, basename='placement')
 
 urlpatterns = [
-    # GET /api/placements/my/ → returns the student's active placement
-    path('my/', MyPlacementView.as_view(), name='my-placement'),
+    path('', include(router.urls)),
 ]

@@ -1,0 +1,140 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<mxGraphModel dx="1422" dy="762" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1169" pageHeight="827" math="0" shadow="0">
+  <root>
+    <mxCell id="0" />
+    <mxCell id="1" parent="0" />
+
+    <!-- Title -->
+    <mxCell id="2" value="ILES — System Architecture Diagram" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=18;fontStyle=1;fontColor=#0F172A;" vertex="1" parent="1">
+      <mxGeometry x="284" y="20" width="600" height="40" as="geometry" />
+    </mxCell>
+
+    <!-- FRONTEND LAYER -->
+    <mxCell id="10" value="FRONTEND LAYER" style="swimlane;startSize=30;fillColor=#dae8fc;strokeColor=#006EAF;fontStyle=1;fontSize=13;fontColor=#0F172A;horizontal=1;" vertex="1" parent="1">
+      <mxGeometry x="80" y="80" width="1000" height="160" as="geometry" />
+    </mxCell>
+
+    <!-- Browser -->
+    <mxCell id="11" value="Browser&#xa;(React 18)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#006EAF;fontSize=11;fontStyle=1;" vertex="1" parent="10">
+      <mxGeometry x="20" y="50" width="140" height="80" as="geometry" />
+    </mxCell>
+
+    <!-- Pages -->
+    <mxCell id="12" value="Pages&#xa;Login | Register&#xa;Dashboards | Profile" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#006EAF;fontSize=10;" vertex="1" parent="10">
+      <mxGeometry x="200" y="50" width="160" height="80" as="geometry" />
+    </mxCell>
+
+    <!-- Components -->
+    <mxCell id="13" value="UI Components&#xa;Navbar | Sidebar&#xa;StatCard | Forms" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#006EAF;fontSize=10;" vertex="1" parent="10">
+      <mxGeometry x="400" y="50" width="160" height="80" as="geometry" />
+    </mxCell>
+
+    <!-- Auth Context -->
+    <mxCell id="14" value="AuthContext&#xa;JWT Token Storage&#xa;Role-based Routing" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;fontSize=10;" vertex="1" parent="10">
+      <mxGeometry x="600" y="50" width="160" height="80" as="geometry" />
+    </mxCell>
+
+    <!-- Axios Service -->
+    <mxCell id="15" value="Axios Service&#xa;API Calls&#xa;Token Interceptor" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#006EAF;fontSize=10;" vertex="1" parent="10">
+      <mxGeometry x="800" y="50" width="160" height="80" as="geometry" />
+    </mxCell>
+
+    <!-- API COMMUNICATION LAYER -->
+    <mxCell id="20" value="REST API — JSON over HTTP  |  JWT Bearer Token Authentication" style="swimlane;startSize=30;fillColor=#f5f5f5;strokeColor=#666666;fontStyle=1;fontSize=12;fontColor=#333333;horizontal=1;" vertex="1" parent="1">
+      <mxGeometry x="80" y="270" width="1000" height="60" as="geometry" />
+    </mxCell>
+    <mxCell id="21" value="POST /api/auth/login/" style="text;html=1;strokeColor=none;fillColor=none;align=center;fontSize=10;fontColor=#666666;" vertex="1" parent="20">
+      <mxGeometry x="50" y="30" width="160" height="20" as="geometry" />
+    </mxCell>
+    <mxCell id="22" value="GET /api/auth/me/" style="text;html=1;strokeColor=none;fillColor=none;align=center;fontSize=10;fontColor=#666666;" vertex="1" parent="20">
+      <mxGeometry x="250" y="30" width="160" height="20" as="geometry" />
+    </mxCell>
+    <mxCell id="23" value="POST /api/auth/register/" style="text;html=1;strokeColor=none;fillColor=none;align=center;fontSize=10;fontColor=#666666;" vertex="1" parent="20">
+      <mxGeometry x="450" y="30" width="180" height="20" as="geometry" />
+    </mxCell>
+    <mxCell id="24" value="GET/POST /api/placements/" style="text;html=1;strokeColor=none;fillColor=none;align=center;fontSize=10;fontColor=#666666;" vertex="1" parent="20">
+      <mxGeometry x="670" y="30" width="180" height="20" as="geometry" />
+    </mxCell>
+
+    <!-- BACKEND LAYER -->
+    <mxCell id="30" value="BACKEND LAYER — Django REST Framework" style="swimlane;startSize=30;fillColor=#d5e8d4;strokeColor=#82b366;fontStyle=1;fontSize=13;fontColor=#0F172A;horizontal=1;" vertex="1" parent="1">
+      <mxGeometry x="80" y="360" width="1000" height="200" as="geometry" />
+    </mxCell>
+
+    <!-- M1 Auth -->
+    <mxCell id="31" value="M1 — Auth &amp; Users&#xa;RegisterView&#xa;MeView&#xa;CustomTokenView" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#82b366;fontSize=10;fontStyle=1;" vertex="1" parent="30">
+      <mxGeometry x="20" y="50" width="150" height="120" as="geometry" />
+    </mxCell>
+
+    <!-- M2 Placements -->
+    <mxCell id="32" value="M2 — Placements&#xa;PlacementSerializer&#xa;PlacementViewSet&#xa;Role Permissions" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#82b366;fontSize=10;fontStyle=1;" vertex="1" parent="30">
+      <mxGeometry x="210" y="50" width="150" height="120" as="geometry" />
+    </mxCell>
+
+    <!-- M3 Logbook -->
+    <mxCell id="33" value="M3 — Logbook&#xa;WeeklyLogSerializer&#xa;LogViewSet&#xa;State Machine" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#82b366;fontSize=10;fontStyle=1;" vertex="1" parent="30">
+      <mxGeometry x="400" y="50" width="150" height="120" as="geometry" />
+    </mxCell>
+
+    <!-- M4 Reviews -->
+    <mxCell id="34" value="M4 — Reviews&#xa;ReviewAction&#xa;Notifications&#xa;Django Signals" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#82b366;fontSize=10;fontStyle=1;" vertex="1" parent="30">
+      <mxGeometry x="590" y="50" width="150" height="120" as="geometry" />
+    </mxCell>
+
+    <!-- M5 Dashboards -->
+    <mxCell id="35" value="M5 — Dashboards&#xa;Score Aggregation&#xa;Analytics&#xa;Report Endpoints" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#82b366;fontSize=10;fontStyle=1;" vertex="1" parent="30">
+      <mxGeometry x="780" y="50" width="150" height="120" as="geometry" />
+    </mxCell>
+
+    <!-- JWT Layer -->
+    <mxCell id="40" value="JWT Authentication — SimpleJWT  |  CustomTokenObtainPairSerializer  |  role + full_name in payload" style="swimlane;startSize=30;fillColor=#fff2cc;strokeColor=#d6b656;fontStyle=1;fontSize=11;fontColor=#0F172A;" vertex="1" parent="1">
+      <mxGeometry x="80" y="590" width="1000" height="50" as="geometry" />
+    </mxCell>
+
+    <!-- DATABASE LAYER -->
+    <mxCell id="50" value="DATABASE LAYER — PostgreSQL" style="swimlane;startSize=30;fillColor=#f8cecc;strokeColor=#b85450;fontStyle=1;fontSize=13;fontColor=#0F172A;horizontal=1;" vertex="1" parent="1">
+      <mxGeometry x="80" y="670" width="1000" height="120" as="geometry" />
+    </mxCell>
+
+    <mxCell id="51" value="CustomUser" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#b85450;fontSize=10;fontStyle=1;" vertex="1" parent="50">
+      <mxGeometry x="20" y="45" width="130" height="50" as="geometry" />
+    </mxCell>
+    <mxCell id="52" value="InternshipPlacement" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#b85450;fontSize=10;fontStyle=1;" vertex="1" parent="50">
+      <mxGeometry x="185" y="45" width="130" height="50" as="geometry" />
+    </mxCell>
+    <mxCell id="53" value="WeeklyLog" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#b85450;fontSize=10;fontStyle=1;" vertex="1" parent="50">
+      <mxGeometry x="350" y="45" width="130" height="50" as="geometry" />
+    </mxCell>
+    <mxCell id="54" value="ReviewAction" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#b85450;fontSize=10;fontStyle=1;" vertex="1" parent="50">
+      <mxGeometry x="515" y="45" width="130" height="50" as="geometry" />
+    </mxCell>
+    <mxCell id="55" value="Evaluation" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#b85450;fontSize=10;fontStyle=1;" vertex="1" parent="50">
+      <mxGeometry x="680" y="45" width="130" height="50" as="geometry" />
+    </mxCell>
+    <mxCell id="56" value="Notification" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#b85450;fontSize=10;fontStyle=1;" vertex="1" parent="50">
+      <mxGeometry x="845" y="45" width="130" height="50" as="geometry" />
+    </mxCell>
+
+    <!-- Arrows between layers -->
+    <!-- Frontend to API -->
+    <mxCell id="60" value="HTTP Requests" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;strokeColor=#006EAF;fontColor=#006EAF;fontSize=10;" edge="1" parent="1" source="10" target="20">
+      <mxGeometry relative="1" as="geometry" />
+    </mxCell>
+
+    <!-- API to Backend -->
+    <mxCell id="61" value="Route to Views" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;strokeColor=#82b366;fontColor=#82b366;fontSize=10;" edge="1" parent="1" source="20" target="30">
+      <mxGeometry relative="1" as="geometry" />
+    </mxCell>
+
+    <!-- Backend to JWT -->
+    <mxCell id="62" value="Validate Token" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;strokeColor=#d6b656;fontColor=#d6b656;fontSize=10;" edge="1" parent="1" source="30" target="40">
+      <mxGeometry relative="1" as="geometry" />
+    </mxCell>
+
+    <!-- JWT to DB -->
+    <mxCell id="63" value="Query / Save" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;strokeColor=#b85450;fontColor=#b85450;fontSize=10;" edge="1" parent="1" source="40" target="50">
+      <mxGeometry relative="1" as="geometry" />
+    </mxCell>
+
+  </root>
+</mxGraphModel>

@@ -23,7 +23,7 @@ class MeView(generics.RetrieveUpdateAPIView):#This view allows authenticated use
         return self.request.user
     
     
-class CustomTokenObtainPairView(TokenObtainPairView):
+class CustomTokenObtainPairView(TokenObtainPairView):# It uses the CustomTokenObtainPairSerializer to customize the token generation process
     serializer_class = CustomTokenObtainPairSerializer
     permission_classes = [permissions.AllowAny]
 
