@@ -47,4 +47,5 @@ class PlacementSerializer(serializers.ModelSerializer):
             raise serializers.ValidationError(
                 {"end_date": "End date must be after start date."}
             )
+        
         return data
