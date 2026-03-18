@@ -1,7 +1,11 @@
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
-from  logbooks.models import Weeklog
+from rest_framework.views import APIView
+
+from  logbook.models import WeeklyLog
+from users.models import CustomUser
+from placements.models import InternshipPlacement
 
 @api_view(["GET"])
 @permission_classes([IsAuthenticated])
@@ -26,3 +30,20 @@ def student_stats(request):
         "weeks_remaining": weeks_remaining,
         "overdue_logs": overdue_logs,
     })
+# dashboards/views.py
+class DashboardStatsView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        total_students = CustomUser.objects.filter(
+            role='student'
+        ).count()
+
+        active_placements = InternshipPlacement.objects.filter(
+            status='ACTIVE'
+        ).count()
+
+        return Response({
+            'total_students':    total_students,
+            'active_placements': active_placements,
+        })

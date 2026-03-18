@@ -11,12 +11,12 @@ class PlacementSerializer(serializers.ModelSerializer):
 
     # Write-only fields to accept IDs when creating/updating
     student_id = serializers.PrimaryKeyRelatedField(
-        queryset= InternshipPlacement.student.field.related_model.objects.all(),
+        queryset=InternshipPlacement.student.field.related_model.objects.all(),
         source='student',
         write_only=True
     )
     workplace_supervisor_id = serializers.PrimaryKeyRelatedField(
-        queryset= InternshipPlacement.workplace_supervisor.field.related_model.objects.all(),
+        queryset=InternshipPlacement.workplace_supervisor.field.related_model.objects.all(),
         source='workplace_supervisor',
         write_only=True
     )
