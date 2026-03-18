@@ -1,4 +1,6 @@
+from django.utils import timezone
 from django.db import models
+from datetime import timedelta
 from users.models import CustomUser
 from placements.models import InternshipPlacement
 
@@ -31,8 +33,19 @@ class WeeklyLog(models.Model):
     )
     submitted_at = models.DateTimeField(null=True, blank=True)
 
+    @property
+    def is_overdue(self):
+        if not self.submitted_at:
+            #not submitted yet, check if deadline has passed
+            deadline = self.placement.start_date + timedelta(days=7 * self.week_number)
+            return timezone.now().date() > deadline
+        #check if submitted after deadline
+        deadline = self.placement.start_date + timedelta(days=7 * self.week_number)
+        return self.submitted_at.date() > deadline
     class Meta:
         unique_together = [['intern', 'week_number']]
     
     def __str__(self):
         return f"Week {self.week_number} - {self.intern.username}"
+    
+    

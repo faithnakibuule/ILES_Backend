@@ -5,6 +5,7 @@ from .models import WeeklyLog
 
 
 class LogReadSerializer(serializers.ModelSerializer):
+
     """
     Used for GET requests — rich display data including
     intern name and placement company.
@@ -12,6 +13,7 @@ class LogReadSerializer(serializers.ModelSerializer):
 
     # These fields cross model boundaries — they navigate
     # to related models using dot notation in 'source'
+
     intern_name = serializers.CharField(
         source='intern.get_full_name',  # calls get_full_name() on the related CustomUser
         read_only=True
@@ -20,6 +22,7 @@ class LogReadSerializer(serializers.ModelSerializer):
         source='placement.company_name',  # reads company_name from InternshipPlacement
         read_only=True
     )
+    overdue = serializers.BooleanField(source='is_overdue', read_only=True)
 
     class Meta:#Tells DRF which model to serialize and which fields to include
         model = WeeklyLog
@@ -32,6 +35,7 @@ class LogReadSerializer(serializers.ModelSerializer):
             'learning_points',
             'status',
             'submitted_at',
+            'overdue',
         ]
         read_only_fields = fields   # nothing can be written through this serializer
 
