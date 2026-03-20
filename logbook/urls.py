@@ -1,6 +1,12 @@
-from django.urls import path
-from .views import WeeklyLogListView
+# logbook/urls.py
+
+from django.urls import path, include
+from rest_framework.routers import DefaultRouter
+from .views import LogViewSet
+
+router = DefaultRouter()
+router.register(r'logs', LogViewSet, basename='log')
 
 urlpatterns = [
-    path('logs/', WeeklyLogListView.as_view(), name='weekly-logs')
+    path('', include(router.urls)),
 ]

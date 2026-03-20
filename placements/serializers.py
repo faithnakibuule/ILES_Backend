@@ -43,8 +43,9 @@ class PlacementSerializer(serializers.ModelSerializer):
         start = data.get('start_date')
         end = data.get('end_date')
 
-        if start and end and end <= start:
+        if start >= end and end <= start:
             raise serializers.ValidationError(
                 {"end_date": "End date must be after start date."}
             )
+        
         return data
