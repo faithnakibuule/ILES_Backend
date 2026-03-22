@@ -6,7 +6,7 @@ router = DefaultRouter()
 
 # One line generates all 5 CRUD endpoints automatically
 # basename required because we use custom get_queryset
-router.register(r'placements', PlacementViewSet, basename='placement')
+router.register(r'', PlacementViewSet, basename='placement')
 
 urlpatterns = [
     path('', include(router.urls)),

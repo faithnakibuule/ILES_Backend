@@ -15,7 +15,7 @@ def student_stats(request):
     if getattr(user, "role", None) != "student":
         return Response ({"detail": "Only students can access this endpoint."}, status = 403)
     
-    qs = WeeklyLog.objects.filter(student = user)
+    qs = WeeklyLog.objects.filter(intern = user)
 
     logs_submitted = qs.filter(status__in = ["SUBMITTED", "APPROVED"]).count()
     pending_review = qs.filter(status = "SUBMITTED").count()
