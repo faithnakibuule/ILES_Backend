@@ -1,5 +1,6 @@
 from django.db import models
 from users.models import CustomUser
+from django.conf import settings
 from logbook.models import WeeklyLog
 
 class EvaluationCriteria(models.Model):
@@ -32,3 +33,34 @@ class Evaluation(models.Model):
         return f"Evaluation for {self.log} by {self.academic_supervisor.username}"
     
 
+class ReviewAction(models.Model):
+    """
+    Audit trail: every approve, send-back, or score event is recorded here.
+    One WeeklyLog can have MANY ReviewActions over its lifetime.
+    """
+
+    ACTION_CHOICES = [
+        ('APPROVED', 'Approved'),
+        ('SENT_BACK', 'Sent Back'),
+        ('SCORED', 'Scored'),
+    ]
+
+    log = models.ForeignKey(
+        WeeklyLog,
+        on_delete=models.CASCADE,
+        related_name='review_actions'
+    )
+    action_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name='actions_taken'
+    )
+    action = models.CharField(max_length=20, choices=ACTION_CHOICES)
+    comment = models.TextField(blank=True, default='')
+    timestamp = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ['-timestamp']
+
+    def __str__(self):
+         return f"{self.action_by} → {self.action} on Log #{self.log.id}"
