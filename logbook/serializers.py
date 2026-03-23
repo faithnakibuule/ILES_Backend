@@ -22,6 +22,13 @@ class LogReadSerializer(serializers.ModelSerializer):
     )
     overdue = serializers.BooleanField(source='is_overdue', read_only=True)
 
+    latest_review_comment = serializers.SerializerMethodField()
+    def get_latest_review_comment(self, obj):
+        latest = obj.review_actions.first()
+        if latest:
+            return latest.comment
+        return None
+
     class Meta:#Tells DRF which model to serialize and which fields to include
         model = WeeklyLog
         fields = [
@@ -34,7 +41,6 @@ class LogReadSerializer(serializers.ModelSerializer):
             'status',
             'submitted_at',
             'overdue',
-            'supervisor_comment',
         ]
         read_only_fields = fields   # nothing can be written through this serializer
 
@@ -59,6 +65,15 @@ class LogWriteSerializer(serializers.ModelSerializer):
             'week_number',
             'activities',
             'learning_points',
-            'supervisor_comment',
         ]
         # No read_only_fields — this serializer is meant for writing
+
+class LogReviewSerializer(serializers.Serializer):
+    """
+    used when supervisor sends back a comment
+    """
+    review_comment = serializers.CharField(
+        required=True,
+        allow_blank=False,
+        help_text="Comment from supervisor explainingthe review decision."
+    )

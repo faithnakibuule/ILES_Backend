@@ -29,7 +29,7 @@ class WeeklyLog(models.Model):
     activities =models.TextField()
     learning_points = models.TextField()
     status = models.CharField(
-                max_length=10,
+                max_length=20,
                 choices=STATUS_CHOICES,
                 default='DRAFT'
     )
@@ -49,5 +49,25 @@ class WeeklyLog(models.Model):
     
     def __str__(self):
         return f"Week {self.week_number} - {self.intern.username}"
-    
+
+class ReviewAction(models.Model):
+    log = models.ForeignKey(
+        WeeklyLog, 
+        on_delete=models.CASCADE,
+        related_name='review_actions'
+    )
+    supervisor = models.ForeignKey(
+        CustomUser,
+        on_delete=models.CASCADE,
+        related_name='review_actions',
+        limit_choices_to={'role': 'workplace_supervisor'}
+    )
+    comment = models.TextField()
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering =['-created_at']
+
+    def __str__(self):
+        return f"Review by {self.supervisor.username} on Week {self.log.week_number}"
     
