@@ -3,9 +3,7 @@
 from rest_framework import serializers
 from .models import WeeklyLog
 
-
 class LogReadSerializer(serializers.ModelSerializer):
-
     """
     Used for GET requests — rich display data including
     intern name and placement company.
@@ -23,6 +21,13 @@ class LogReadSerializer(serializers.ModelSerializer):
         read_only=True
     )
     overdue = serializers.BooleanField(source='is_overdue', read_only=True)
+
+    latest_review_comment = serializers.SerializerMethodField()
+    def get_latest_review_comment(self, obj):
+        latest = obj.review_actions.first()
+        if latest:
+            return latest.comment
+        return None
 
     class Meta:#Tells DRF which model to serialize and which fields to include
         model = WeeklyLog
@@ -62,3 +67,13 @@ class LogWriteSerializer(serializers.ModelSerializer):
             'learning_points',
         ]
         # No read_only_fields — this serializer is meant for writing
+
+class LogReviewSerializer(serializers.Serializer):
+    """
+    used when supervisor sends back a comment
+    """
+    review_comment = serializers.CharField(
+        required=True,
+        allow_blank=False,
+        help_text="Comment from supervisor explainingthe review decision."
+    )

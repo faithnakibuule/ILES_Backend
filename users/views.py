@@ -27,3 +27,12 @@ class CustomTokenObtainPairView(TokenObtainPairView):# It uses the CustomTokenOb
     serializer_class = CustomTokenObtainPairSerializer
     permission_classes = [permissions.AllowAny]
 
+class WeeklyLogListView(generics.ListCreateAPIView):
+    queryset = []
+    serializer_class = CustomUserSerializer
+    permission_classes = [permissions.AllowAny]
+
+    def get_queryset(self):
+        return []
+        
+
