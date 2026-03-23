@@ -9,7 +9,8 @@ from .serializers import LogReadSerializer, LogWriteSerializer
 
 
 class LogViewSet(viewsets.ModelViewSet):
-    permission_classes = [permissions.IsAuthenticated]
+    queryset = WeeklyLog.objects.all()
+    serializer_class = WeeklyLogSerializer
 
     def get_queryset(self):
         user = self.request.user
@@ -41,3 +42,34 @@ class LogViewSet(viewsets.ModelViewSet):
         log.status = 'SUBMITTED'
         log.save()
         return Response({'message': 'Log submitted successfully.'})
+    
+    def review_log(self, request, pk=None):
+        log = self.get_object()
+
+        if request.user.role != 'workplace_supervisor':
+            raise ValidationError("Only a workplace supervisor can approve logs.")
+        
+        if log.status != 'SUBMITTED':
+            raise ValidationError("Only submitted logs can be reviwed.")
+        
+        log.status = 'REVIEWED'
+        log.save()
+        return Response({'message': 'Log approved and marked as REVIEWED.'})
+    
+    @action(detail=True, methods=['post'])
+    def send_back(self, request, pk=None):
+        log = self.get_object()
+        comment = request.data.get('supervisor_comment')
+
+        if request.user.role != 'workplace_supervisor':
+            raise ValidationError("Only a workplace supervisor can send back logs.")
+        
+        if not comment:
+            raise ValidationError("you must provide a supervisor comment when sending back a log for revision.")
+        
+        log.status = 'DRAFT'
+        log.supervisor_comment = comment
+        log.save()
+        return Response({'message': 'Log sent back to student for revision'})
+    
+    

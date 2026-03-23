@@ -3,9 +3,7 @@
 from rest_framework import serializers
 from .models import WeeklyLog
 
-
 class LogReadSerializer(serializers.ModelSerializer):
-
     """
     Used for GET requests — rich display data including
     intern name and placement company.
@@ -36,6 +34,7 @@ class LogReadSerializer(serializers.ModelSerializer):
             'status',
             'submitted_at',
             'overdue',
+            'supervisor_comment',
         ]
         read_only_fields = fields   # nothing can be written through this serializer
 
@@ -60,5 +59,6 @@ class LogWriteSerializer(serializers.ModelSerializer):
             'week_number',
             'activities',
             'learning_points',
+            'supervisor_comment',
         ]
         # No read_only_fields — this serializer is meant for writing

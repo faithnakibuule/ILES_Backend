@@ -5,6 +5,8 @@ from users.models import CustomUser
 from placements.models import InternshipPlacement
 
 class WeeklyLog(models.Model):
+    supervisor_comment = models.TextField(null=True, blank=True)
+     
 
     STATUS_CHOICES =[
         ('DRAFT', 'Draft'),
