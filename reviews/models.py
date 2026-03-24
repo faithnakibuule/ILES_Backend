@@ -36,7 +36,6 @@ class Evaluation(models.Model):
 class ReviewAction(models.Model):
     """
     Audit trail: every approve, send-back, or score event is recorded here.
-    One WeeklyLog can have MANY ReviewActions over its lifetime.
     """
     ACTION_CHOICES = [
         ('APPROVED', 'Approved'),
