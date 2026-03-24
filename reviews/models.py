@@ -1,6 +1,7 @@
+# reviews/models.py
 from django.db import models
-from users.models import CustomUser
 from django.conf import settings
+from users.models import CustomUser
 from logbook.models import WeeklyLog
 
 class EvaluationCriteria(models.Model):
@@ -22,23 +23,21 @@ class Evaluation(models.Model):
         CustomUser,
         on_delete=models.CASCADE,
         related_name='evaluations',
-        limit_choices_to={'role': 'academic_supervisor'}     
+        limit_choices_to={'role': 'academic_supervisor'}
     )
-    total_score= models.DecimalField(max_digits=6, decimal_places=2)
+    total_score = models.DecimalField(max_digits=6, decimal_places=2)
     criteria_scores = models.JSONField()
     comments = models.TextField()
     created_at = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
-        return f"Evaluation for {self.log} by {self.academic_supervisor.username}"
-    
+        return f"Evaluation for {self.log} by {self.academic_supervisor.email}"
 
 class ReviewAction(models.Model):
     """
     Audit trail: every approve, send-back, or score event is recorded here.
     One WeeklyLog can have MANY ReviewActions over its lifetime.
     """
-
     ACTION_CHOICES = [
         ('APPROVED', 'Approved'),
         ('SENT_BACK', 'Sent Back'),
@@ -63,4 +62,4 @@ class ReviewAction(models.Model):
         ordering = ['-timestamp']
 
     def __str__(self):
-         return f"{self.action_by} → {self.action} on Log #{self.log.id}"
+        return f"{self.action_by.email} → {self.action} on Log #{self.log.id}"
