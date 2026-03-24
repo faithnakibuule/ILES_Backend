@@ -34,6 +34,7 @@ class WeeklyLog(models.Model):
                 default='DRAFT'
     )
     submitted_at = models.DateTimeField(null=True, blank=True)
+    submitted_at = models.DateTimeField(auto_now = True)
 
     @property
     def is_overdue(self):
@@ -49,12 +50,11 @@ class WeeklyLog(models.Model):
     
     def __str__(self):
         return f"Week {self.week_number} - {self.intern.username}"
-
 class ReviewAction(models.Model):
     log = models.ForeignKey(
         WeeklyLog, 
         on_delete=models.CASCADE,
-        related_name='review_actions'
+        related_name='logbook_review_actions'
     )
     supervisor = models.ForeignKey(
         CustomUser,
