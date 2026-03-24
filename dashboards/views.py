@@ -1,18 +1,8 @@
-<<<<<<< HEAD
-<<<<<<< HEAD
-from django.shortcuts import render
-
-# Create your views here.
-=======
-# dashboards/views.py
-from rest_framework.views import APIView
-from rest_framework.response import Response
-=======
 from rest_framework.decorators import api_view, permission_classes
->>>>>>> 0edc1e4afaf9f39aa7169e23309b43ad83b0573f
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
+from django.utils import timezone
 
 from  logbook.models import WeeklyLog
 from users.models import CustomUser
@@ -26,13 +16,13 @@ def student_stats(request):
     if getattr(user, "role", None) != "student":
         return Response ({"detail": "Only students can access this endpoint."}, status = 403)
     
-    qs = WeeklyLog.objects.filter(student = user)
+    qs = WeeklyLog.objects.filter(intern = user)
 
     logs_submitted = qs.filter(status__in = ["SUBMITTED", "APPROVED"]).count()
     pending_review = qs.filter(status = "SUBMITTED").count()
     approved_logs = qs.filter(status = "APPROVED").count()
     weeks_remaining = max(12 - approved_logs, 0)
-    overdue_logs = sum(1 for log in qs.exclude(status = "APPROVED") if log.is_overdue())
+    overdue_logs = sum(1 for log in qs.exclude(status = "APPROVED") if log.is_overdue)
 
     return Response({
         "logs_submitted": logs_submitted,
@@ -58,7 +48,31 @@ class DashboardStatsView(APIView):
             'total_students':    total_students,
             'active_placements': active_placements,
         })
-<<<<<<< HEAD
->>>>>>> f9129086cb0de8063b216baf636a138669a32341
-=======
->>>>>>> 0edc1e4afaf9f39aa7169e23309b43ad83b0573f
+
+class WorkplaceStatsView(APIView):
+    permission_classes = [IsAuthenticated]
+    def get(self, request):
+        supervisor = request.user
+        today = timezone.now().date()
+
+        pending_reviews = WeeklyLog.objects.filter(
+            placement__workplace_supervisor=supervisor,
+            status = 'SUBMITTED'
+        ).count()
+
+        approved_today = WeeklyLog.objects.filter(
+            placement__workplace_supervisor = supervisor,
+            status = 'REVIEWED',
+            updated_at__date = today
+        ).count()
+
+        total_interns = InternshipPlacement.objects.filter(
+            workplace_supervisor = supervisor,
+            status = 'ACTIVE'
+        ).count()
+
+        return Response({
+            'pending_reviews': pending_reviews,
+            'approved_today': approved_today,
+            'total_interns': total_interns,
+        })
