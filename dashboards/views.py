@@ -1,4 +1,15 @@
+<<<<<<< HEAD
+<<<<<<< HEAD
+from django.shortcuts import render
+
+# Create your views here.
+=======
+# dashboards/views.py
+from rest_framework.views import APIView
+from rest_framework.response import Response
+=======
 from rest_framework.decorators import api_view, permission_classes
+>>>>>>> 0edc1e4afaf9f39aa7169e23309b43ad83b0573f
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
@@ -47,3 +58,7 @@ class DashboardStatsView(APIView):
             'total_students':    total_students,
             'active_placements': active_placements,
         })
+<<<<<<< HEAD
+>>>>>>> f9129086cb0de8063b216baf636a138669a32341
+=======
+>>>>>>> 0edc1e4afaf9f39aa7169e23309b43ad83b0573f
