@@ -1,18 +1,13 @@
+# apps/core/models.py
+# Core app is used for shared functionality only.
+# All models are in their respective apps:
+#   - users/models.py      -> CustomUser
+#   - placements/models.py -> InternshipPlacement
+#   - logbook/models.py    -> WeeklyLog
+#   - reviews/models.py    -> ReviewAction, Evaluation
 
 
-from django.db import models
-
-class Item(models.Model):
-    """Sample model for your API"""
-    name = models.CharField(max_length=100)
-    description = models.TextField(blank=True)
-    created_at = models.DateTimeField(auto_now_add=True)
-    updated_at = models.DateTimeField(auto_now=True)
-    
-    class Meta:
-        ordering = ['-created_at']
-    
-    def __str__(self):
-        return self.name
-
-# Create your models here.
+#cat users/models.py
+#cat placements/models.py
+#cat logbook/models.py
+#cat reviews/models.py
