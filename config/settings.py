@@ -44,8 +44,9 @@ INSTALLED_APPS = [
     'users',
     'placements',
     'logbook',
-    'reviews',
     'dashboards',
+    'reviews',
+    
 ]
 
 #Custom user model

@@ -7,6 +7,7 @@ from rest_framework.exceptions import ValidationError
 from .models import WeeklyLog, ReviewAction 
 from .serializers import LogReadSerializer , LogWriteSerializer, LogReviewSerializer
 from .permissions import IsWorkplaceSupervisor 
+from .services import can_transition
 
 class LogViewSet(viewsets.ModelViewSet):
     queryset = WeeklyLog.objects.all()
@@ -36,12 +37,14 @@ class LogViewSet(viewsets.ModelViewSet):
     def submit(self, request, pk=None):
         log = self.get_object()
 
-        if log.status != 'DRAFT':
-            raise ValidationError("You can only submit a log that is in DRAFT status.")
-
-        log.status = 'SUBMITTED'
-        log.save()
-        return Response({'message': 'Log submitted successfully.'})
+        if can_transition(log, 'SUBMITTED', request.user.role):
+            log.status = 'SUBMITTED'
+            log.save()
+            return Response({'message': 'Log submitted successfully.'})
+        else:
+            raise ValidationError(
+                "You are not allowed to make this transition."
+            )
     
     @action(detail=True, methods=['post'], permission_classes=[IsWorkplaceSupervisor])
     def review_log(self, request, pk=None):
