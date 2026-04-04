@@ -1,7 +1,8 @@
 
 
 from rest_framework import serializers
-from .models import Evaluation, EvaluationCriteria
+from .models import Evaluation, EvaluationCriteria,ReviewAction
+
 
 
 class EvaluationSerializer(serializers.ModelSerializer):
@@ -55,3 +56,19 @@ class EvaluationSerializer(serializers.ModelSerializer):
 
         evaluation = Evaluation.objects.create(**validated_data)
         return evaluation
+    
+    
+class ReviewActionSerializer(serializers.ModelSerializer):
+    # Instead of returning the full user object, just return useful display fields
+    action_by_name = serializers.CharField(source='action_by.get_full_name')
+    action_by_role = serializers.CharField(source='action_by.role')
+
+    class Meta:
+        model = ReviewAction
+        fields = [
+            'action_by_name',  # who acted
+            'action_by_role',  # their role
+            'action',          # what they did
+            'comment',         # what they said
+            'timestamp',       # when
+        ]    
