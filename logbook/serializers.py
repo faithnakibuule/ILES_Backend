@@ -75,5 +75,5 @@ class LogReviewSerializer(serializers.Serializer):
     review_comment = serializers.CharField(
         required=True,
         allow_blank=False,
-        help_text="Comment from supervisor explainingthe review decision."
+        help_text="Comment from supervisor explaining the review decision."
     )
