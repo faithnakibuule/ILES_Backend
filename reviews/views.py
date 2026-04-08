@@ -4,6 +4,8 @@ from django.shortcuts import render
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated
+from rest_framework import viewsets
+from rest_framework.decorators import action
 from logbook.models import WeeklyLog
 from .serializers import ReviewActionSerializer
 from .serializers import NotificationSerializer, EvaluationSerializer
@@ -105,7 +107,7 @@ class EvaluationViewSet(viewsets.ModelViewSet):
         log.status = 'APPROVED'
         log.save()
 
-        
+
 
         
 
