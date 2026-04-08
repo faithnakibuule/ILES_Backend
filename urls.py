@@ -10,5 +10,4 @@ urlpatterns = [
     path('api/', include('logbook.urls')),
     path('api/', include('placements.urls')),
     path('api/auth/', include('users.urls')),
-
 ]
