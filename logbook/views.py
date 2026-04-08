@@ -23,7 +23,12 @@ class LogViewSet(viewsets.ModelViewSet):
             return WeeklyLog.objects.filter(placement__supervisor=user)
 
         elif user.role == 'academic_supervisor':
-            return WeeklyLog.objects.filter(status='REVIEWED')
+            my_students = user.supervised_students.all()
+            return WeeklyLog.objects.filter(
+                intern__in=my_students,
+                status='REVIEWED'
+            )
+        
 
         return WeeklyLog.objects.none()  # safety net for any other role
 
@@ -57,24 +62,31 @@ class LogViewSet(viewsets.ModelViewSet):
         log.save()
         return Response({'message': 'Log approved and marked as REVIEWED.'})
     
+   
+
     @action(detail=True, methods=['post'], permission_classes=[IsWorkplaceSupervisor])
     def send_back(self, request, pk=None):
         log = self.get_object()
 
+        if not can_transition(log, 'DRAFT', request.user.role):
+            raise ValidationError("You are not allowed to send this log back.")
+
+   
+        serializer = LogReviewSerializer(data=request.data)
+
         if not serializer.is_valid():
-            return response(serializer.errors, status=400)
-        
+            return Response(serializer.errors, status=400)
+
         comment = serializer.validated_data['review_comment']
 
+   
         ReviewAction.objects.create(
             log=log,
-            supervisor=request.user,
+            action_by=request.user,
+            action='SENT_BACK',
             comment=comment
         )
-        
+
         log.status = 'DRAFT'
-        log.supervisor_comment = comment
         log.save()
-        return Response({'message': 'Log sent back to student for revision'})
-    
-    
+        return Response({'message': 'Log sent back to student for revision.'})

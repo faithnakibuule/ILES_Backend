@@ -4,7 +4,7 @@ from rest_framework import serializers
 from .models import WeeklyLog
 
 class LogReadSerializer(serializers.ModelSerializer):
-    """
+    """ 
     Used for GET requests — rich display data including
     intern name and placement company.
     """
@@ -24,7 +24,7 @@ class LogReadSerializer(serializers.ModelSerializer):
 
     latest_review_comment = serializers.SerializerMethodField()
     def get_latest_review_comment(self, obj):
-        latest = obj.review_actions.first()
+        latest = obj.logbook_review_actions.first()
         if latest:
             return latest.comment
         return None
@@ -75,5 +75,5 @@ class LogReviewSerializer(serializers.Serializer):
     review_comment = serializers.CharField(
         required=True,
         allow_blank=False,
-        help_text="Comment from supervisor explainingthe review decision."
+        help_text="Comment from supervisor explaining the review decision."
     )

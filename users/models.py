@@ -35,12 +35,21 @@ class CustomUser(AbstractUser):
         choices = ROLE_CHOICES,
         default = 'student'
     )
+    phone = models.CharField(max_length=20, blank=True, null=True)
+    academic_supervisor = models.ForeignKey(
+        'self',
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='supervisor_students',
+        limit_choices_to={'role': 'academic_supervisor'}
+    )
 
     USERNAME_FIELD = 'email'
-    REQUIRED_FIELDS = [] #email is required by default, so we don't need to add it here
-    phone = models.CharField(max_length=20, blank=True, null=True) #optional phone number field
-    
-    objects = CustomUserManager()#tells Django to use our custom manager for user creation and management
+    REQUIRED_FIELDS =[]
+
+    objects = CustomUserManager()
+
     def __str__(self):
         return f"{self.email} ({self.role})"
 
