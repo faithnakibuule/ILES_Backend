@@ -6,6 +6,14 @@ from placements.models import InternshipPlacement
 
 class WeeklyLog(models.Model):
     supervisor_comment = models.TextField(null=True, blank=True)
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self._old_status = self.status #remember status when object is loaded
+
+    def save(self, *args, **kwargs):
+        super().save(*args, **kwargs)
+        self._old_status = self.status  #update memory after saving
      
 
     STATUS_CHOICES =[
@@ -70,4 +78,7 @@ class ReviewAction(models.Model):
 
     def __str__(self):
         return f"Review by {self.supervisor.username} on Week {self.log.week_number}"
+
+
+ 
     
