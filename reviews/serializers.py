@@ -72,3 +72,15 @@ class ReviewActionSerializer(serializers.ModelSerializer):
             'comment',         # what they said
             'timestamp',       # when
         ]    
+
+class NotificationSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Notification
+        fields = [
+            'id',
+            'message',
+            'notification_type',
+            'is_read',
+            'created_at',
+        ]
+        read_only_fields = ['id', 'message', 'notification_type', 'is_read', 'created_at']
