@@ -68,9 +68,9 @@ class WorkplaceStatsView(APIView):
         ).count()
 
         approved_today = WeeklyLog.objects.filter(
-            placement__workplace_supervisor = supervisor,
+            placement__workplace_supervisor=supervisor,
             status = 'REVIEWED',
-            updated_at__date = today
+            submitted_at__date = today
         ).count()
 
         total_interns = InternshipPlacement.objects.filter(
@@ -83,3 +83,27 @@ class WorkplaceStatsView(APIView):
             'approved_today': approved_today,
             'total_interns': total_interns,
         })
+class PendingLogsView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        supervisor = request.user
+
+        pending_logs = WeeklyLog.objects.filter(
+            placement__workplace_supervisor=supervisor,
+            status='SUBMITTED'
+        ).select_related('intern', 'placement').order_by('-submitted_at')
+
+        data = [
+            {
+                'id': log.id,
+                'intern_name': f"{log.intern.first_name} {log.intern.last_name}",
+                'week_number': log.week_number,
+                'submitted_at': log.submitted_at,
+                'status': log.status,
+            }
+            for log in pending_logs
+        ]
+
+        return Response(data)  
+
