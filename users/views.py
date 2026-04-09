@@ -3,6 +3,10 @@ from rest_framework import generics, permissions
 from rest_framework_simplejwt.views import TokenObtainPairView
 from .serializers import CustomUserSerializer, RegisterSerializer,UserUpdateSerializer, CustomTokenObtainPairSerializer
 from .models import CustomUser
+from rest_framework.views import APIView
+from rest_framework.permissions import IsAuthenticated 
+from rest_framework.response import Response
+from .serializers import MeSerializer
 # Create your views here.
 
 class RegisterView(generics.CreateAPIView):#This view allows users to register by creating a new CustomUser instance
@@ -34,5 +38,13 @@ class WeeklyLogListView(generics.ListCreateAPIView):
 
     def get_queryset(self):
         return []
+    
+class MeView2(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        serializer = MeSerializer(request.user)
+        return Response(serializer.data)
+    
         
 

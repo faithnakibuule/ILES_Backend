@@ -1,5 +1,3 @@
-# logbook/views.py
-
 from rest_framework import viewsets 
 from rest_framework.decorators import action
 from rest_framework.response import Response
@@ -55,33 +53,40 @@ class LogViewSet(viewsets.ModelViewSet):
         
         log.status = 'REVIEWED'
         log.save()
+
+        ReviewAction.objects.create(
+            log = log,
+            action_by = request.user,
+            action = 'REVIEWED',
+            comment = 'Log reviewed and approved'
+        )
         return Response({'message': 'Log approved and marked as REVIEWED.'})
     
    
 
-@action(detail=True, methods=['post'], permission_classes=[IsWorkplaceSupervisor])
-def send_back(self, request, pk=None):
-    log = self.get_object()
+    @action(detail=True, methods=['post'], permission_classes=[IsWorkplaceSupervisor])
+    def send_back(self, request, pk=None):
+        log = self.get_object()
 
-    if not can_transition(log, 'DRAFT', request.user.role):
-        raise ValidationError("You are not allowed to send this log back.")
-
-   
-    serializer = LogReviewSerializer(data=request.data)
-
-    if not serializer.is_valid():
-        return Response(serializer.errors, status=400)
-
-    comment = serializer.validated_data['review_comment']
+        if not can_transition(log, 'DRAFT', request.user.role):
+            raise ValidationError("You are not allowed to send this log back.")
 
    
-    ReviewAction.objects.create(
-        log=log,
-        action_by=request.user,
-        action='SENT_BACK',
-        comment=comment
-    )
+        serializer = LogReviewSerializer(data=request.data)
 
-    log.status = 'DRAFT'
-    log.save()
-    return Response({'message': 'Log sent back to student for revision.'})
+        if not serializer.is_valid():
+            return Response(serializer.errors, status=400)
+
+        comment = serializer.validated_data['review_comment']
+
+   
+        ReviewAction.objects.create(
+            log=log,
+            action_by = request.user,
+            action='SENT_BACK',
+            comment=comment
+        )
+
+        log.status = 'DRAFT'
+        log.save()
+        return Response({'message': 'Log sent back to student for revision.'})

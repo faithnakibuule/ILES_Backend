@@ -1,19 +1,16 @@
 
 from django.shortcuts import render
-
-# Create your views here.
-
-# dashboards/views.py
-
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from django.utils import timezone
-
 from  logbook.models import WeeklyLog
 from users.models import CustomUser
 from placements.models import InternshipPlacement
+from django.db.models import Avg, Count
+from reviews.models import Evaluation
+from users.permissions import IsAcademicSupervisor
 
 @api_view(["GET"])
 @permission_classes([IsAuthenticated])
@@ -82,4 +79,38 @@ class WorkplaceStatsView(APIView):
             'pending_reviews': pending_reviews,
             'approved_today': approved_today,
             'total_interns': total_interns,
+        })
+
+class AcademicStatsView(APIView):
+    permission_classes = [IsAuthenticated, IsAcademicSupervisor]
+
+    def get(self, request):
+        user = request.user
+        reviewed_log_ids = WeeklyLog.objects.filter(
+            status = 'REVIEWED'
+        ).values_list('id', flat = True)
+
+        already_scored_log_ids = Evaluation.objects.filter(
+            log_id__in = reviewed_log_ids,
+            academic_supervisor = user
+        ).values_list('log_id', flat = True)
+
+        logs_to_score = WeeklyLog.objects.filter(
+            status = 'REVIEWED'
+        ).exclude(id__in = already_scored_log_ids
+        ).count()
+
+        avg_result = Evaluation.objects.filter(
+            academic_supervisor = user
+        ).aggregate(avg = Avg('total_score'))
+        avg_cohort_score = round(avg_result['avg'] or 0, 1)
+
+        fully_approved = WeeklyLog.objects.filter(
+            status = 'APPROVED'
+        ).count()
+
+        return Response({
+            'logs_to-score': logs_to_score,
+            'avg_cohort_score': avg_cohort_score,
+            'fully_approved': fully_approved,
         })
