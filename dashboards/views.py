@@ -1,19 +1,20 @@
 
 from django.shortcuts import render
-
-# Create your views here.
-
-# dashboards/views.py
-
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from django.utils import timezone
-
+from rest_framework import status
+from django.shortcuts import get_object_or_404
 from  logbook.models import WeeklyLog
 from users.models import CustomUser
 from placements.models import InternshipPlacement
+from django.db.models import Avg, Count
+from reviews.models import Evaluation
+from users.permissions import IsAcademicSupervisor
+from rest_framework.generics import ListAPIView
+from logbook.serializers import LogReadSerializer
 
 @api_view(["GET"])
 @permission_classes([IsAuthenticated])
@@ -68,9 +69,9 @@ class WorkplaceStatsView(APIView):
         ).count()
 
         approved_today = WeeklyLog.objects.filter(
-            placement__workplace_supervisor = supervisor,
+            placement__workplace_supervisor=supervisor,
             status = 'REVIEWED',
-            updated_at__date = today
+            submitted_at__date = today
         ).count()
 
         total_interns = InternshipPlacement.objects.filter(
@@ -83,3 +84,110 @@ class WorkplaceStatsView(APIView):
             'approved_today': approved_today,
             'total_interns': total_interns,
         })
+
+class AcademicStatsView(APIView):
+    permission_classes = [IsAuthenticated, IsAcademicSupervisor]
+
+    def get(self, request):
+        user = request.user
+        reviewed_log_ids = WeeklyLog.objects.filter(
+            status = 'REVIEWED'
+        ).values_list('id', flat = True)
+
+        already_scored_log_ids = Evaluation.objects.filter(
+            log_id__in = reviewed_log_ids,
+            academic_supervisor = user
+        ).values_list('log_id', flat = True)
+
+        logs_to_score = WeeklyLog.objects.filter(
+            status = 'REVIEWED'
+        ).exclude(id__in = already_scored_log_ids
+        ).count()
+
+        avg_result = Evaluation.objects.filter(
+            academic_supervisor = user
+        ).aggregate(avg = Avg('total_score'))
+        avg_cohort_score = round(avg_result['avg'] or 0, 1)
+
+        fully_approved = WeeklyLog.objects.filter(
+            status = 'APPROVED'
+        ).count()
+
+        return Response({
+            'logs_to_score': logs_to_score,
+            'avg_cohort_score': avg_cohort_score,
+            'fully_approved': fully_approved,
+        })
+# iles_backend/dashboards/views.py
+
+
+# ── StudentProgressView ───────────────────────────────────────────────────────
+class StudentProgressView(APIView):
+    
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request, student_id):
+        try:
+            from logbook.models import WeeklyLog
+            from users.models import CustomUser
+
+            # Confirm the student exists
+            student = get_object_or_404(CustomUser, id=student_id, role='student')
+
+            # Security check: students can only see their OWN progress
+            # Academic supervisors and admins can see anyone's
+            user = request.user
+            is_student_viewing_own = (
+                user.role == 'student' and user.id == student.id
+            )
+            is_privileged = user.role in [
+                'academic_supervisor', 'admin'
+            ]
+
+            if not is_student_viewing_own and not is_privileged:
+                return Response(
+                    {'error': 'You do not have permission to view this student\'s progress.'},
+                    status=status.HTTP_403_FORBIDDEN
+                )
+
+            # Fetch all logs for this student, ordered by week
+            logs = WeeklyLog.objects.filter(
+                intern=student
+            ).order_by('week_number')
+
+            # Build the response list
+            progress_data = []
+            for log in logs:
+                # Try to get the evaluation score if this log was approved
+                score = None
+                if log.status == 'APPROVED':
+                    try:
+                        from reviews.models import Evaluation
+                        evaluation = Evaluation.objects.filter(log=log).first()
+                        if evaluation:
+                            score = float(evaluation.total_score)
+                    except Exception:
+                        score = None
+
+                progress_data.append({
+                    'week_number': log.week_number,
+                    'status': log.status,
+                    'score_if_approved': score,
+                })
+
+            return Response(progress_data, status=status.HTTP_200_OK)
+
+        except Exception as e:
+            return Response(
+                {'error': str(e)},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )
+        
+class PendingLogsView(ListAPIView):
+    permission_classes = [IsAuthenticated]
+    serializer_class = LogReadSerializer
+    def get_queryset(self):
+        return WeeklyLog.objects.filter(
+            placement__workplace_supervisor = self.request.user,
+            status = 'SUBMITTED'
+        ).order_by('-submitted_at')

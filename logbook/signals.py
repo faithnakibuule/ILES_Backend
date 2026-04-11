@@ -3,7 +3,19 @@
 from django.db.models.signals import post_save   # The signal that fires AFTER a model saves
 from django.dispatch import receiver              # The decorator that connects function to signal
 from .models import WeeklyLog                     # The model we are listening to
-from reviews.models import Notification           # The model we are writing to
+from reviews.models import Notification  
+
+
+# get the review action comment for a log(used when sending back, to include the reason)
+
+def get_latest_sendback_comment(log):
+    from reviews.models import ReviewAction
+    last_action = ReviewAction.objects.filter(
+        log = log,
+        action = "SENT_BACK"
+    ).order_by("-timestamp").first()
+    return last_action.comment if last_action else "Please review and resubmit." 
+             # The model we are writing to
 
 
 @receiver(post_save, sender=WeeklyLog)
@@ -46,3 +58,40 @@ def notify_supervisor_on_submission(sender, instance, created, **kwargs):
             f"and is awaiting your review."
         )
     )
+
+#REVIEWED notify academic supervisor
+@receiver(post_save, sender=WeeklyLog)
+def notify_on_reviewed(sender, instance, created, **kwargs):
+    if instance.status == "REVIEWED":
+        old_status = getattr(instance,"_old_status",None)
+        if old_status != "REVIEWED":
+            academic_supervisor = instance.intern.profile.academic_supervisor
+            Notification.objects.create(
+                recipient=academic_supervisor,
+                message=f"{instance.intern.get_full_name()}'s Week {instance.week_number} log has been reviewed and is ready for scoring.",
+                notification_type= "LOG_REVIEWED"
+            )
+
+#APPROVED notify the student
+@receiver(post_save, sender=WeeklyLog)
+def notify_on_approved(sender, instance, created, **kwargs):
+    if instance.status == "APPROVED":
+        old_status = getattr(instance, "_old_status", None)
+        if old_status != "APPROVED":
+            Notification.objects.create(
+                recipient=instance.intern,
+                message=f"Your Week {instance.week.number} log has been approved and scored.",
+                notification_type= "LOG_APPROVED",
+            )
+
+@receiver(post_save, sender=WeeklyLog)
+def notify_on_sent_back(sender, instance, created, **kwargs):
+    if instance.status == "DRAFT":
+        old_status = getattr(instance, "_old_status", None)
+        if old_status == "SUBMITTED":
+            comment = get_latest_sendback_comment(instance)
+            Notification.objeccts.create(
+                recipient=instance.intern,
+                message=f"Your Week {instance.week_number} log was sent back for revision. Reason: {comment}",
+                notification_type="LOG_SENT_BACK",
+            )

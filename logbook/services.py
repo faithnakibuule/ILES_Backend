@@ -1,12 +1,4 @@
-# logbook/services.py
-
-
 def can_transition(log, new_status, user_role):
-    """
-    Bouncer function — checks if a state transition is allowed.
-    Returns True if allowed, False if not.
-    """
-
     if user_role == 'student':
         if log.status == 'DRAFT' and new_status == 'SUBMITTED':
             return True

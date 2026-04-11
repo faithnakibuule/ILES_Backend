@@ -1,5 +1,3 @@
-# logbook/views.py
-
 from rest_framework import viewsets 
 from rest_framework.decorators import action
 from rest_framework.response import Response
@@ -60,6 +58,13 @@ class LogViewSet(viewsets.ModelViewSet):
         
         log.status = 'REVIEWED'
         log.save()
+
+        ReviewAction.objects.create(
+            log = log,
+            action_by = request.user,
+            action = 'REVIEWED',
+            comment = 'Log reviewed and approved'
+        )
         return Response({'message': 'Log approved and marked as REVIEWED.'})
     
    
