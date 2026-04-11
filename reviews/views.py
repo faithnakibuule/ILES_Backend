@@ -92,7 +92,7 @@ class EvaluationViewSet(viewsets.ModelViewSet):
             raise PermissionDenied("Only academic supervisors can create evaluations.")
         
         #get the log being evaluated
-        log_id = self.request.data.get('log_id')
+        log_id = self.request.data.get('log')
         try:
             log = WeeklyLog.objects.get(id=log_id)
         except WeeklyLog.DoesNotExist:

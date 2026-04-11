@@ -10,8 +10,8 @@ class EvaluationSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Evaluation
-        fields = ['id', 'log', 'academic_supervisor', 'comments', 'criteria_scores', 'total_score', 'created_at']
-        read_only_fields = ['total_score', 'created_at']
+        fields = ['id', 'log', 'comments', 'criteria_scores', 'total_score', 'created_at']
+        read_only_fields = ['total_score', 'created_at', 'academic_supervisor']
 
     def validate_criteria_scores(self, scores):
         if not isinstance(scores, dict):

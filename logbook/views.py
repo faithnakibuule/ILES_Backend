@@ -2,7 +2,8 @@ from rest_framework import viewsets
 from rest_framework.decorators import action
 from rest_framework.response import Response
 from rest_framework.exceptions import ValidationError
-from .models import WeeklyLog, ReviewAction 
+from .models import WeeklyLog
+from reviews.models import ReviewAction
 from .serializers import LogReadSerializer , LogWriteSerializer, LogReviewSerializer
 from .permissions import IsWorkplaceSupervisor 
 from .services import can_transition
@@ -18,7 +19,7 @@ class LogViewSet(viewsets.ModelViewSet):
             return WeeklyLog.objects.filter(intern=user)
 
         elif user.role == 'workplace_supervisor':
-            return WeeklyLog.objects.filter(placement__supervisor=user)
+            return WeeklyLog.objects.filter(placement__workplace_supervisor=user)
 
         elif user.role == 'academic_supervisor':
             my_students = user.supervised_students.all()
@@ -95,3 +96,6 @@ class LogViewSet(viewsets.ModelViewSet):
         log.status = 'DRAFT'
         log.save()
         return Response({'message': 'Log sent back to student for revision.'})
+    
+    def perform_create(self, serializer):
+        serializer.save(intern=self.request.user)
