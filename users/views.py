@@ -3,13 +3,11 @@ from rest_framework import generics, permissions
 from rest_framework_simplejwt.views import TokenObtainPairView
 from .serializers import CustomUserSerializer, RegisterSerializer,UserUpdateSerializer, CustomTokenObtainPairSerializer
 from .models import CustomUser
-<<<<<<< HEAD
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import filters
 from .permissions import IsAdminUser
 from rest_framework import viewsets
 from rest_framework.decorators import action
-=======
 from rest_framework.views import APIView
 from rest_framework.permissions import IsAuthenticated 
 from rest_framework.response import Response
@@ -18,7 +16,6 @@ from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated
 from rest_framework import status
 from django.db.models import Count
->>>>>>> 44c1104b76085927045603daef650d79be3f43a9
 
 class RegisterView(generics.CreateAPIView):#This view allows users to register by creating a new CustomUser instance
     queryset = CustomUser.objects.all()    # using the RegisterSerializer. It is accessible to anyone (AllowAny permission).
@@ -53,7 +50,6 @@ class WeeklyLogListView(generics.ListCreateAPIView):
 class MeView2(APIView):
     permission_classes = [IsAuthenticated]
 
-<<<<<<< HEAD
 class AdminUserViewSet(viewsets.ModelViewSet):
     """
     Admin-only control panel for managing all users.
@@ -71,7 +67,7 @@ class AdminUserViewSet(viewsets.ModelViewSet):
     search_fields = ['first_name','last_name','email']
     
     # What fields can be sorted with ?ordering=email
-    ordering_fields = ['date_joined', 'full_name', 'email']
+    ordering_fields = ['date_joined', 'first_name', 'last_name', 'email']
     
     @action(detail=True, methods=['patch']) 
     def deactivate(self,request,pk=None):
@@ -90,7 +86,6 @@ class AdminUserViewSet(viewsets.ModelViewSet):
      
     
     
-=======
     def get(self, request):
         serializer = MeSerializer(request.user)
         return Response(serializer.data)
@@ -149,4 +144,3 @@ class UserStatsView(APIView):
             'total_logs': total_logs,
             'approved_logs': approved_logs,
         }, status=status.HTTP_200_OK)
->>>>>>> 44c1104b76085927045603daef650d79be3f43a9
