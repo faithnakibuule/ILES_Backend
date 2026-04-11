@@ -1,0 +1,69 @@
+## How to Use This File
+Go through each component below. For every item, tick ✅ or mark ❌ with a note.
+
+---
+
+## Audit Checklist
+
+### src/components/ui/
+
+| Component File | Uses Tailwind Only (no inline styles) | Matches Design Reference Colours | Handles `loading` State | Handles `error` State | Notes |
+|---|---|---|---|---|---|
+| StatCard.jsx | ☐ | ☐ | ☐ | ☐ | |
+| Badge.jsx | ☐ | ☐ | ☐ | ☐ | |
+| Button.jsx | ☐ | ☐ | ☐ | ☐ | |
+| DataTable.jsx | ☐ | ☐ | ☐ | ☐ | |
+| Modal.jsx | ☐ | ☐ | ☐ | ☐ | |
+| FormField.jsx | ☐ | ☐ | ☐ | ☐ | |
+| SelectField.jsx | ☐ | ☐ | ☐ | ☐ | |
+| ConfirmDialog.jsx | ☐ | ☐ | ☐ | ☐ | |
+| EmptyState.jsx | ☐ | ☐ | ☐ | ☐ | |
+| Pagination.jsx | ☐ | ☐ | ☐ | ☐ | |
+
+### src/components/layout/
+
+| Component File | Uses Tailwind Only | Matches Design | Loading State | Error State | Notes |
+|---|---|---|---|---|---|
+| Sidebar.jsx | ☐ | ☐ | ☐ | ☐ | |
+| Navbar.jsx | ☐ | ☐ | ☐ | ☐ | |
+| DashboardLayout.jsx | ☐ | ☐ | ☐ | ☐ | |
+
+### src/pages/ (dashboard shells)
+
+| Page | Uses Tailwind Only | Matches Design | Loading State | Error State | Notes |
+|---|---|---|---|---|---|
+| AdminDashboard.jsx | ☐ | ☐ | ☐ | ☐ | |
+| StudentDashboard.jsx | ☐ | ☐ | ☐ | ☐ | |
+| WorkplaceDashboard.jsx | ☐ | ☐ | ☐ | ☐ | |
+| AcademicDashboard.jsx | ☐ | ☐ | ☐ | ☐ | |
+
+---
+
+## Design Reference Colour Tokens
+Match every component against these values (from the ILES design system):
+
+| Token | Hex |
+|---|---|
+| DRAFT badge | `#64748B` |
+| SUBMITTED badge | `#2563EB` |
+| REVIEWED badge | `#EA580C` |
+| APPROVED badge | `#16A34A` |
+| Primary button | Check design reference |
+| Background | Check design reference |
+
+---
+
+## Issues Found (fill in as you audit)
+
+| # | Component | Issue Description | Severity (P1/P2/P3) | Fixed? |
+|---|---|---|---|---|
+| 1 | | | | |
+| 2 | | | | |
+| 3 | | | | |
+
+---
+
+## Summary
+- Total components audited: ___
+- Issues found: ___
+- Issues fixed before Friday merge: ___
