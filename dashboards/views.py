@@ -10,7 +10,8 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from django.utils import timezone
-
+from rest_framework import status
+from django.shortcuts import get_object_or_404
 from  logbook.models import WeeklyLog
 from users.models import CustomUser
 from placements.models import InternshipPlacement
@@ -107,3 +108,75 @@ class PendingLogsView(APIView):
 
         return Response(data)  
 
+# iles_backend/dashboards/views.py
+
+
+# ── StudentProgressView ───────────────────────────────────────────────────────
+class StudentProgressView(APIView):
+    """
+    GET /api/dashboards/student-progress/{student_id}/
+
+    Returns all weekly logs for a student with their week number,
+    status, and score (if the log has been approved and evaluated).
+
+    Used by: Student's own progress line chart, Academic supervisor view.
+    Accessible by: The student themselves, academic supervisors, admins.
+    """
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request, student_id):
+        try:
+            from logbook.models import WeeklyLog
+            from users.models import CustomUser
+
+            # Confirm the student exists
+            student = get_object_or_404(CustomUser, id=student_id, role='student')
+
+            # Security check: students can only see their OWN progress
+            # Academic supervisors and admins can see anyone's
+            user = request.user
+            is_student_viewing_own = (
+                user.role == 'student' and user.id == student.id
+            )
+            is_privileged = user.role in [
+                'academic_supervisor', 'admin'
+            ]
+
+            if not is_student_viewing_own and not is_privileged:
+                return Response(
+                    {'error': 'You do not have permission to view this student\'s progress.'},
+                    status=status.HTTP_403_FORBIDDEN
+                )
+
+            # Fetch all logs for this student, ordered by week
+            logs = WeeklyLog.objects.filter(
+                intern=student
+            ).order_by('week_number')
+
+            # Build the response list
+            progress_data = []
+            for log in logs:
+                # Try to get the evaluation score if this log was approved
+                score = None
+                if log.status == 'APPROVED':
+                    try:
+                        from reviews.models import Evaluation
+                        evaluation = Evaluation.objects.filter(log=log).first()
+                        if evaluation:
+                            score = float(evaluation.total_score)
+                    except Exception:
+                        score = None
+
+                progress_data.append({
+                    'week_number': log.week_number,
+                    'status': log.status,
+                    'score_if_approved': score,
+                })
+
+            return Response(progress_data, status=status.HTTP_200_OK)
+
+        except Exception as e:
+            return Response(
+                {'error': str(e)},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )
