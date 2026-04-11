@@ -21,7 +21,12 @@ class LogViewSet(viewsets.ModelViewSet):
             return WeeklyLog.objects.filter(placement__supervisor=user)
 
         elif user.role == 'academic_supervisor':
-            return WeeklyLog.objects.filter(status='REVIEWED')
+            my_students = user.supervised_students.all()
+            return WeeklyLog.objects.filter(
+                intern__in=my_students,
+                status='REVIEWED'
+            )
+        
 
         return WeeklyLog.objects.none()  # safety net for any other role
 
@@ -82,7 +87,7 @@ class LogViewSet(viewsets.ModelViewSet):
    
         ReviewAction.objects.create(
             log=log,
-            action_by = request.user,
+            action_by=request.user,
             action='SENT_BACK',
             comment=comment
         )

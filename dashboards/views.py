@@ -65,9 +65,9 @@ class WorkplaceStatsView(APIView):
         ).count()
 
         approved_today = WeeklyLog.objects.filter(
-            placement__workplace_supervisor = supervisor,
+            placement__workplace_supervisor=supervisor,
             status = 'REVIEWED',
-            updated_at__date = today
+            submitted_at__date = today
         ).count()
 
         total_interns = InternshipPlacement.objects.filter(
@@ -110,7 +110,7 @@ class AcademicStatsView(APIView):
         ).count()
 
         return Response({
-            'logs_to-score': logs_to_score,
+            'logs_to_score': logs_to_score,
             'avg_cohort_score': avg_cohort_score,
             'fully_approved': fully_approved,
         })
