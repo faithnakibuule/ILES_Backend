@@ -40,6 +40,7 @@ INSTALLED_APPS = [
     # Third-party
     'rest_framework',
     'corsheaders',
+    'django_filters',
     # Local apps
     'users',
     'placements',
@@ -145,6 +146,14 @@ REST_FRAMEWORK ={
         'rest_framework.parsers.JSONParser',
         'rest_framework.parsers.FormParser',
         'rest_framework.parsers.MultiPartParser',
+    ],
+    'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.PageNumberPagination',
+    'PAGE_SIZE': 10,
+    
+    'DEFAULT_FILTER_BACKENDS': [
+        'django_filters.rest_framework.DjangoFilterBackend',  # filter by field
+        'rest_framework.filters.SearchFilter',                # ?search=
+        'rest_framework.filters.OrderingFilter',              # ?ordering=
     ],
 }
 

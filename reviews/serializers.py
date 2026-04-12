@@ -1,7 +1,7 @@
 
 
 from rest_framework import serializers
-from .models import Evaluation, EvaluationCriteria,ReviewAction
+from .models import Evaluation, EvaluationCriteria, Notification,ReviewAction
 
 
 
@@ -10,8 +10,8 @@ class EvaluationSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Evaluation
-        fields = ['id', 'log', 'academic_supervisor', 'comments', 'criteria_scores', 'total_score', 'created_at']
-        read_only_fields = ['total_score', 'created_at']
+        fields = ['id', 'log', 'comments', 'criteria_scores', 'total_score', 'created_at']
+        read_only_fields = ['total_score', 'created_at', 'academic_supervisor']
 
     def validate_criteria_scores(self, scores):
         if not isinstance(scores, dict):
@@ -72,3 +72,15 @@ class ReviewActionSerializer(serializers.ModelSerializer):
             'comment',         # what they said
             'timestamp',       # when
         ]    
+
+class NotificationSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Notification
+        fields = [
+            'id',
+            'message',
+            'notification_type',
+            'is_read',
+            'created_at',
+        ]
+        read_only_fields = ['id', 'message', 'notification_type', 'is_read', 'created_at']

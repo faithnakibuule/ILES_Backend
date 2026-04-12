@@ -2,6 +2,9 @@ from django.test import TestCase
 from rest_framework.test import APIClient
 from rest_framework import status
 from django.contrib.auth import get_user_model
+from placements.models import InternshipPlacement
+from logbook.models import WeeklyLog
+from reviews.models import Notification
 
 User = get_user_model()
 
@@ -49,7 +52,11 @@ class PlacementPermissionTests(TestCase):
         self.client.force_authenticate(user = self.student)
         response = self.client.get('/api/placements/')
 
-        for placement in response.data:
+        if isinstance(response.data, list):
+            placements = response.data
+        else:
+            placements = response.data['results']
+        for placement in placements:
             self.assertEqual(placement['student'], self.student.id)
 
     def test_date_validation_rejects_invalid_range(self):
@@ -63,5 +70,3 @@ class PlacementPermissionTests(TestCase):
         })
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
 
-
-        

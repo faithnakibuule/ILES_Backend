@@ -65,6 +65,7 @@ class LogWriteSerializer(serializers.ModelSerializer):
             'week_number',
             'activities',
             'learning_points',
+            'placement',
         ]
         # No read_only_fields — this serializer is meant for writing
 

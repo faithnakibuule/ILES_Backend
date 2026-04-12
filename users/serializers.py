@@ -1,6 +1,10 @@
 from rest_framework import serializers
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
+
+from django.contrib.auth import get_user_model
 from .models import CustomUser
+from reviews.models import Notification
+User = get_user_model
 
 #shows user data
 class CustomUserSerializer(serializers.ModelSerializer):
@@ -47,4 +51,23 @@ class CustomTokenObtainPairSerializer(TokenObtainPairSerializer):
         token = super().get_token(user)
         token['email'] = user.email
         token['role'] = user.role
+        token['full_name'] = f"{user.first_name} {user.last_name}".strip()
         return token
+
+class MeSerializer(serializers.ModelSerializer):
+    unread_notifications = serializers.SerializerMethodField()
+    fullname = serializers.SerializerMethodField()
+
+    def get_unread_notifications(self, user):
+        return Notification.objects.filter(
+            recipient = user,
+            is_read = False
+        ).count()
+    
+    def get_fullname(self,obj):
+        return f"{obj.first_name} {obj.last_name}".strip()
+
+    class Meta:
+        model = User
+        fields = ['id', 'email','fullname', 'role','unread_notifications']
+        read_only_fields = fields

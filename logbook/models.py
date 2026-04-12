@@ -5,9 +5,6 @@ from users.models import CustomUser
 from placements.models import InternshipPlacement
 
 class WeeklyLog(models.Model):
-    supervisor_comment = models.TextField(null=True, blank=True)
-     
-
     STATUS_CHOICES =[
         ('DRAFT', 'Draft'),
         ('SUBMITTED', 'Submitted'),
@@ -33,8 +30,18 @@ class WeeklyLog(models.Model):
                 choices=STATUS_CHOICES,
                 default='DRAFT'
     )
-    submitted_at = models.DateTimeField(auto_now = True)
 
+    submitted_at = models.DateTimeField(null=True, blank=True)
+    supervisor_comment = models.TextField(null=True, blank=True)
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self._old_status = self.status #remember status when object is loaded
+
+    def save(self, *args, **kwargs):
+        super().save(*args, **kwargs)
+        self._old_status = self.status  #update memory after saving
+     
     @property
     def is_overdue(self):
         if not self.submitted_at:
@@ -48,7 +55,7 @@ class WeeklyLog(models.Model):
         unique_together = [['intern', 'week_number']]
     
     def __str__(self):
-        return f"Week {self.week_number} - {self.intern.username}"
+        return f"Week {self.week_number} - {self.intern.email}"
 class ReviewAction(models.Model):
     log = models.ForeignKey(
         WeeklyLog, 
@@ -68,5 +75,8 @@ class ReviewAction(models.Model):
         ordering =['-created_at']
 
     def __str__(self):
-        return f"Review by {self.supervisor.username} on Week {self.log.week_number}"
+        return f"Review by {self.supervisor.email} on Week {self.log.week_number}"
+
+
+ 
     
