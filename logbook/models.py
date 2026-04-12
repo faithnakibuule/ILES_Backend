@@ -33,7 +33,6 @@ class WeeklyLog(models.Model):
                 choices=STATUS_CHOICES,
                 default='DRAFT'
     )
-    submitted_at = models.DateTimeField(null=True, blank=True)
     submitted_at = models.DateTimeField(auto_now = True)
 
     @property
