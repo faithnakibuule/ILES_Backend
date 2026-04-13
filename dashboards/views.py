@@ -191,3 +191,28 @@ class PendingLogsView(ListAPIView):
             placement__workplace_supervisor = self.request.user,
             status = 'SUBMITTED'
         ).order_by('-submitted_at')
+    
+class LogsPerWeekView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        data = (
+            WeeklyLog.objects
+            .values('week_number')
+            .annotate(count = Count('id'))
+            .order_by('week_nmber')
+        )
+        return Response(list(data))
+
+class StatusDistributionView(APIView):
+    permisssion_classes = [IsAuthenticated]
+
+    def get(self, request):
+        data = (
+            WeeklyLog.objects
+            .values('status')
+            .annotate(count=Count('id'))
+            .order_by('status')
+        )
+        return Response(list(data))
+    

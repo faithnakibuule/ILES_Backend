@@ -6,6 +6,8 @@ from .views import (
     AcademicStatsView,
     PendingLogsView,
     StudentProgressView,
+    LogsPerWeekView,
+    StatusDistributionView
 )
 
 urlpatterns = [
@@ -19,4 +21,6 @@ urlpatterns = [
         StudentProgressView.as_view(),
         name="student-progress",
     ),
+    path('logs-per-week/', LogsPerWeekView.as_view(), name = 'logs-per-week'),
+    path('status-distribution/', StatusDistributionView.as_view(), name = 'status-distribution'),
 ]
