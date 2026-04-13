@@ -1,4 +1,5 @@
 from django.urls import path
+
 from . import views
 from .views import (
     DashboardStatsView,
@@ -6,6 +7,7 @@ from .views import (
     AcademicStatsView,
     PendingLogsView,
     StudentProgressView,
+    CohortScoresView,
 )
 
 urlpatterns = [
@@ -14,9 +16,7 @@ urlpatterns = [
     path("workplace-stats/", WorkplaceStatsView.as_view(),   name="workplace-stats"),
     path("academic-stats/",  AcademicStatsView.as_view(),    name="academic-stats"),
     path("pending-logs/",    PendingLogsView.as_view(),      name="pending-logs"),
-    path(
-        "student-progress/<int:student_id>/",
-        StudentProgressView.as_view(),
-        name="student-progress",
-    ),
+    path("student-progress/<int:student_id>/",StudentProgressView.as_view(),name="student-progress",),
+    path('cohort-scores/', CohortScoresView.as_view(), name='cohort-scores'),
+
 ]
