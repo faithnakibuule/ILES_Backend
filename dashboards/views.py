@@ -197,51 +197,56 @@ class PendingLogsView(ListAPIView):
             placement__workplace_supervisor = self.request.user,
             status = 'SUBMITTED'
         ).order_by('-submitted_at')
+    
+class LogsPerWeekView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        data = (
+            WeeklyLog.objects
+            .values('week_number')
+            .annotate(count = Count('id'))
+            .order_by('week_nmber')
+        )
+        return Response(list(data))
+
+class StatusDistributionView(APIView):
+    permisssion_classes = [IsAuthenticated]
+
+    def get(self, request):
+        data = (
+            WeeklyLog.objects
+            .values('status')
+            .annotate(count=Count('id'))
+            .order_by('status')
+        )
+        return Response(list(data))
+    
         
 class CohortScoresView(APIView):
-    """
-    GET /api/dashboards/cohort-scores/
-    Returns each student in the academic supervisor's cohort with:
-    - their name
-    - average score across approved logs
-    - number of approved logs
-    - total logs submitted
-    Sorted by avg_score descending (highest scorer first).
-    """
     permission_classes = [IsAuthenticated]
 
     def get(self, request):
         user = request.user
-
-        # Step 1 — Find all placements where this user is the academic supervisor
-        # related_name='academic_supervised_placements' makes this possible
         placements = InternshipPlacement.objects.filter(
             academic_supervisor=user
-        ).select_related('student')  # fetch student data in same DB query 
+        ).select_related('student') 
 
-        # Step 2 — Build the cohort report for each student
         cohort_data = []
 
         for placement in placements:
             student = placement.student
 
-            # Get all logs belonging to this student
             all_logs = WeeklyLog.objects.filter(intern=student)
-
-            # Count total logs submitted (any status)
             total_logs = all_logs.count()
-
-            # Count only APPROVED logs
             approved_logs = all_logs.filter(status='APPROVED').count()
 
-            # Calculate average score across approved logs
-            # Avg() returns None if there are no approved logs
             avg_result = all_logs.filter(
                 status='APPROVED'
             ).aggregate(
-                avg=Avg('evaluations__total_score')  # traverse FK to Evaluation model
+                avg=Avg('evaluations__total_score') 
             )
-            avg_score = round(avg_result['avg'] or 0, 2)  # default to 0 if None
+            avg_score = round(avg_result['avg'] or 0, 2)  
 
             cohort_data.append({
                 'student_name': f"{student.first_name} {student.last_name}".strip(),
@@ -250,7 +255,6 @@ class CohortScoresView(APIView):
                 'total_logs':    total_logs,
             })
 
-        # Step 3 — Sort by avg_score descending (highest first)
         cohort_data.sort(key=lambda x: x['avg_score'], reverse=True)
 
         return Response(cohort_data)        
