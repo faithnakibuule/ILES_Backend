@@ -1,11 +1,9 @@
 from django.shortcuts import render
-#import exceptions to handle permission issues
 from rest_framework.exceptions import PermissionDenied
-#import viewsets to create a viewser for the InternshipPlcement model
 from rest_framework import viewsets,permissions
-#import the InternshipPlacement model and the PlacementSerializer to serialize the data
 from .models import InternshipPlacement
 from .serializers import PlacementSerializer
+
 
 class PlacementViewSet(viewsets.ModelViewSet):
     serializer_class = PlacementSerializer # Every request through this ViewSet uses PlacementSerializer
@@ -45,3 +43,4 @@ class PlacementViewSet(viewsets.ModelViewSet):
             raise PermissionDenied("You can only view placements you supervise.")
         return super().retrieve(request, *args, **kwargs)
            
+
