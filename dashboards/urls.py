@@ -1,4 +1,5 @@
 from django.urls import path
+
 from . import views
 from .views import (
     DashboardStatsView,
@@ -7,7 +8,8 @@ from .views import (
     PendingLogsView,
     StudentProgressView,
     LogsPerWeekView,
-    StatusDistributionView
+    StatusDistributionView,
+    CohortScoresView,
 )
 
 urlpatterns = [
@@ -23,4 +25,7 @@ urlpatterns = [
     ),
     path('logs-per-week/', LogsPerWeekView.as_view(), name = 'logs-per-week'),
     path('status-distribution/', StatusDistributionView.as_view(), name = 'status-distribution'),
+    path("student-progress/<int:student_id>/",StudentProgressView.as_view(),name="student-progress",),
+    path('cohort-scores/', CohortScoresView.as_view(), name='cohort-scores'),
+
 ]

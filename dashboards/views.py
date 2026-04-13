@@ -15,6 +15,12 @@ from reviews.models import Evaluation
 from users.permissions import IsAcademicSupervisor
 from rest_framework.generics import ListAPIView
 from logbook.serializers import LogReadSerializer
+from django.db.models import Avg, Count, Q
+from rest_framework.views import APIView
+from rest_framework.response import Response
+from rest_framework.permissions import IsAuthenticated
+from placements.models import InternshipPlacement
+from logbook.models import WeeklyLog
 
 @api_view(["GET"])
 @permission_classes([IsAuthenticated])
@@ -216,3 +222,39 @@ class StatusDistributionView(APIView):
         )
         return Response(list(data))
     
+        
+class CohortScoresView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        user = request.user
+        placements = InternshipPlacement.objects.filter(
+            academic_supervisor=user
+        ).select_related('student') 
+
+        cohort_data = []
+
+        for placement in placements:
+            student = placement.student
+
+            all_logs = WeeklyLog.objects.filter(intern=student)
+            total_logs = all_logs.count()
+            approved_logs = all_logs.filter(status='APPROVED').count()
+
+            avg_result = all_logs.filter(
+                status='APPROVED'
+            ).aggregate(
+                avg=Avg('evaluations__total_score') 
+            )
+            avg_score = round(avg_result['avg'] or 0, 2)  
+
+            cohort_data.append({
+                'student_name': f"{student.first_name} {student.last_name}".strip(),
+                'avg_score':    avg_score,
+                'approved_logs': approved_logs,
+                'total_logs':    total_logs,
+            })
+
+        cohort_data.sort(key=lambda x: x['avg_score'], reverse=True)
+
+        return Response(cohort_data)        
