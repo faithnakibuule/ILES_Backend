@@ -9,6 +9,15 @@ class PlacementViewSet(viewsets.ModelViewSet):
     serializer_class = PlacementSerializer # Every request through this ViewSet uses PlacementSerializer
     permission_classes = [permissions.IsAuthenticated]#only logged in users can access this viewset
     
+    filterset_fields = ['status', 'company_name']#?status=ACTIVE or ?company_name=Tech
+    search_fields = [
+    'student__first_name',
+    'student__last_name', 
+    'student__email',
+    'company_name',
+]# ?search=john searches student name/email
+    ordering_fields = ['start_date', 'end_date', 'status', 'company_name']# Sorting: ?ordering=start_date
+    
     def get_queryset(self):
         user = self.request.user#get the user making the request from the jwt token
         

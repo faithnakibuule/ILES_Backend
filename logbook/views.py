@@ -11,6 +11,9 @@ from .services import can_transition
 class LogViewSet(viewsets.ModelViewSet):
     queryset = WeeklyLog.objects.all()
     serializer_class = LogReadSerializer
+    filterset_fields = ['status', 'week_number']# Exact filters: ?status=SUBMITTED or ?week_number=3
+    search_fields = ['intern__first_name', 'intern__last_name', 'intern__email']# Partial search: ?search=john searches intern's name and email
+    ordering_fields = ['week_number', 'status', 'submitted_at']# Sorting: ?ordering=week_number or ?ordering=-week_number (descending)
 
     def get_queryset(self):
         user = self.request.user
