@@ -76,3 +76,4 @@ class WorkplaceStatsView(APIView):
             'approved_today': approved_today,
             'total_interns': total_interns,
         })
+    
