@@ -153,7 +153,8 @@ git push origin m5-dashboard
 
 ## 👥 Authors
 
-**Tambwe Rahim Stone**  
+**Tambwe Rahim Stone** 
+**Kamwine Jonan** 
 
 ---
 
