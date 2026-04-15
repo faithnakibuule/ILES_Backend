@@ -19,18 +19,28 @@ class PlacementViewSet(viewsets.ModelViewSet):
     ordering_fields = ['start_date', 'end_date', 'status', 'company_name']# Sorting: ?ordering=start_date
     
     def get_queryset(self):
-        user = self.request.user#get the user making the request from the jwt token
+        user = self.request.user
+
+        base = (
+            InternshipPlacement.objects
+            .select_related(
+                'student',
+                'workplace_supervisor',
+                'academic_supervisor',
+            )
+            .prefetch_related('weeklylogs')
+        )
         
-        if user.role == 'admin':#admins can see all placements
-            return InternshipPlacement.objects.all()
-        elif user.role == 'student':#students can only see their own placements
-            return InternshipPlacement.objects.filter(student=user)
-        elif user.role == 'workplace_supervisor':#supervisors can only see placements they supervise
-            return InternshipPlacement.objects.filter(workplace_supervisor=user)
-        elif user.role == 'academic_supervisor':#academic supervisors can only see placements they supervise
-            return InternshipPlacement.objects.filter(academic_supervisor=user)
+        if user.role == 'admin':
+            return base.all()
+        elif user.role == 'student':
+            return base.filter(student=user)
+        elif user.role == 'workplace_supervisor':
+            return base.filter(workplace_supervisor=user)
+        elif user.role == 'academic_supervisor':
+            return base.filter(academic_supervisor=user)
         else:
-            return InternshipPlacement.objects.none()#other users cannot see any placements
+            return InternshipPlacement.objects.none()
     
     def perform_create(self, serializer):
         user = self.request.user

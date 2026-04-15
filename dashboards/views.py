@@ -157,9 +157,12 @@ class StudentProgressView(APIView):
                 )
 
             # Fetch all logs for this student, ordered by week
-            logs = WeeklyLog.objects.filter(
-                intern=student
-            ).order_by('week_number')
+            logs = (
+                WeeklyLog.objects
+                .prefetch_related('evaluations')
+                .filter(intern = student)
+                .order_by('week_number')
+            )
 
             # Build the response list
             progress_data = []
@@ -167,13 +170,10 @@ class StudentProgressView(APIView):
                 # Try to get the evaluation score if this log was approved
                 score = None
                 if log.status == 'APPROVED':
-                    try:
-                        from reviews.models import Evaluation
-                        evaluation = Evaluation.objects.filter(log=log).first()
-                        if evaluation:
-                            score = float(evaluation.total_score)
-                    except Exception:
-                        score = None
+                    evaluation = log.evaluations.first()
+                    if evaluation:
+                        score = float(evaluation.total_score)
+                
 
                 progress_data.append({
                     'week_number': log.week_number,
@@ -193,10 +193,15 @@ class PendingLogsView(ListAPIView):
     permission_classes = [IsAuthenticated]
     serializer_class = LogReadSerializer
     def get_queryset(self):
-        return WeeklyLog.objects.filter(
+        return(
+            WeeklyLog.objects
+            .select_related('intern', 'placement', 'placement__workplace_supervisor')
+            .filter(
             placement__workplace_supervisor = self.request.user,
             status = 'SUBMITTED'
-        ).order_by('-submitted_at')
+            )
+            .order_by('-submitted_at')
+        )
     
 class LogsPerWeekView(APIView):
     permission_classes = [IsAuthenticated]
@@ -206,12 +211,12 @@ class LogsPerWeekView(APIView):
             WeeklyLog.objects
             .values('week_number')
             .annotate(count = Count('id'))
-            .order_by('week_nmber')
+            .order_by('week_number')
         )
         return Response(list(data))
 
 class StatusDistributionView(APIView):
-    permisssion_classes = [IsAuthenticated]
+    permission_classes = [IsAuthenticated]
 
     def get(self, request):
         data = (
@@ -228,25 +233,30 @@ class CohortScoresView(APIView):
 
     def get(self, request):
         user = request.user
-        placements = InternshipPlacement.objects.filter(
-            academic_supervisor=user
-        ).select_related('student') 
+        placements = (
+            InternshipPlacement.objects
+            .filter(academic_supervisor=user)
+            .select_related('student')
+            .prefetch_related('student__weeklyLogs__evaluations')
+        )
 
         cohort_data = []
 
         for placement in placements:
             student = placement.student
 
-            all_logs = WeeklyLog.objects.filter(intern=student)
-            total_logs = all_logs.count()
-            approved_logs = all_logs.filter(status='APPROVED').count()
+            all_logs = student.weeklyLogs.all()
+            total_logs = len(all_logs)
+            approved_logs = sum(1 for l in all_logs if l.status == 'APPROVED')
 
-            avg_result = all_logs.filter(
-                status='APPROVED'
-            ).aggregate(
-                avg=Avg('evaluations__total_score') 
-            )
-            avg_score = round(avg_result['avg'] or 0, 2)  
+            scores = [
+                float(e.total_score)
+                for l in all_logs if l.status == 'APPROVED'
+                for e in l.evaluations.all()
+                if e.total_score is not None
+            ]
+
+            avg_score = round(sum(scores) / len(scores), 2) if scores else 0
 
             cohort_data.append({
                 'student_name': f"{student.first_name} {student.last_name}".strip(),
