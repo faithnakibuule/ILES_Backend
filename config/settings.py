@@ -155,6 +155,18 @@ REST_FRAMEWORK ={
         'rest_framework.filters.SearchFilter',                # ?search=
         'rest_framework.filters.OrderingFilter',              # ?ordering=
     ],
+    'DEFAULT_THROTTLE_CLASSES': [
+        'rest_framework.throttling.AnonRateThrottle',
+        'rest_framework.throttling.UserRateThrottle',
+    ],
+
+    # The actual rate limits — scope name matches throttle class scope
+    'DEFAULT_THROTTLE_RATES': {
+        'anon':     '100/day',   # default fallback for anonymous users
+        'user':     '1000/day',  # default fallback for logged-in users
+        'login':    '5/minute',  # our custom LoginRateThrottle
+        'register': '3/hour',    # our custom RegisterRateThrottle
+    },
 }
 
 #CORS SETTINGS
