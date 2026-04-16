@@ -15,6 +15,12 @@ from reviews.models import Evaluation
 from users.permissions import IsAcademicSupervisor
 from rest_framework.generics import ListAPIView
 from logbook.serializers import LogReadSerializer
+from django.db.models import Avg, Count, Q
+from rest_framework.views import APIView
+from rest_framework.response import Response
+from rest_framework.permissions import IsAuthenticated
+from placements.models import InternshipPlacement
+from logbook.models import WeeklyLog
 
 @api_view(["GET"])
 @permission_classes([IsAuthenticated])
@@ -151,9 +157,12 @@ class StudentProgressView(APIView):
                 )
 
             # Fetch all logs for this student, ordered by week
-            logs = WeeklyLog.objects.filter(
-                intern=student
-            ).order_by('week_number')
+            logs = (
+                WeeklyLog.objects
+                .prefetch_related('evaluations')
+                .filter(intern = student)
+                .order_by('week_number')
+            )
 
             # Build the response list
             progress_data = []
@@ -161,13 +170,10 @@ class StudentProgressView(APIView):
                 # Try to get the evaluation score if this log was approved
                 score = None
                 if log.status == 'APPROVED':
-                    try:
-                        from reviews.models import Evaluation
-                        evaluation = Evaluation.objects.filter(log=log).first()
-                        if evaluation:
-                            score = float(evaluation.total_score)
-                    except Exception:
-                        score = None
+                    evaluation = log.evaluations.first()
+                    if evaluation:
+                        score = float(evaluation.total_score)
+                
 
                 progress_data.append({
                     'week_number': log.week_number,
@@ -187,7 +193,78 @@ class PendingLogsView(ListAPIView):
     permission_classes = [IsAuthenticated]
     serializer_class = LogReadSerializer
     def get_queryset(self):
-        return WeeklyLog.objects.filter(
+        return(
+            WeeklyLog.objects
+            .select_related('intern', 'placement', 'placement__workplace_supervisor')
+            .filter(
             placement__workplace_supervisor = self.request.user,
             status = 'SUBMITTED'
-        ).order_by('-submitted_at')
+            )
+            .order_by('-submitted_at')
+        )
+    
+class LogsPerWeekView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        data = (
+            WeeklyLog.objects
+            .values('week_number')
+            .annotate(count = Count('id'))
+            .order_by('week_number')
+        )
+        return Response(list(data))
+
+class StatusDistributionView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        data = (
+            WeeklyLog.objects
+            .values('status')
+            .annotate(count=Count('id'))
+            .order_by('status')
+        )
+        return Response(list(data))
+    
+        
+class CohortScoresView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        user = request.user
+        placements = (
+            InternshipPlacement.objects
+            .filter(academic_supervisor=user)
+            .select_related('student')
+            .prefetch_related('student__weeklyLogs__evaluations')
+        )
+
+        cohort_data = []
+
+        for placement in placements:
+            student = placement.student
+
+            all_logs = student.weeklyLogs.all()
+            total_logs = len(all_logs)
+            approved_logs = sum(1 for l in all_logs if l.status == 'APPROVED')
+
+            scores = [
+                float(e.total_score)
+                for l in all_logs if l.status == 'APPROVED'
+                for e in l.evaluations.all()
+                if e.total_score is not None
+            ]
+
+            avg_score = round(sum(scores) / len(scores), 2) if scores else 0
+
+            cohort_data.append({
+                'student_name': f"{student.first_name} {student.last_name}".strip(),
+                'avg_score':    avg_score,
+                'approved_logs': approved_logs,
+                'total_logs':    total_logs,
+            })
+
+        cohort_data.sort(key=lambda x: x['avg_score'], reverse=True)
+
+        return Response(cohort_data)        

@@ -11,25 +11,41 @@ from .services import can_transition
 class LogViewSet(viewsets.ModelViewSet):
     queryset = WeeklyLog.objects.all()
     serializer_class = LogReadSerializer
+    filterset_fields = ['status', 'week_number']# Exact filters: ?status=SUBMITTED or ?week_number=3
+    search_fields = ['intern__first_name', 'intern__last_name', 'intern__email']# Partial search: ?search=john searches intern's name and email
+    ordering_fields = ['week_number', 'status', 'submitted_at']# Sorting: ?ordering=week_number or ?ordering=-week_number (descending)
 
     def get_queryset(self):
         user = self.request.user
 
         if user.role == 'student':
-            return WeeklyLog.objects.filter(intern=user)
+            return(
+                 WeeklyLog.objects
+                .select_related('intern', 'placement', 'placement__workplace_supervisor')
+                .prefetch_related('evaluations', 'reviewactions')
+                .filter(intern=user)
+            )
+
 
         elif user.role == 'workplace_supervisor':
-            return WeeklyLog.objects.filter(placement__workplace_supervisor=user)
-
+            return(
+                 WeeklyLog.objects
+                 .select_related('intern', 'placement', 'placement__workplace_supervisor')
+                 .prefetch_related('evaluations', 'reviewactions')
+                 .filter(placement__workplace_supervisor=user)
+            )
+        
         elif user.role == 'academic_supervisor':
             my_students = user.supervised_students.all()
-            return WeeklyLog.objects.filter(
-                intern__in=my_students,
-                status='REVIEWED'
+            return(
+                WeeklyLog.objects
+                .select_related('intern', 'placement', 'placement__workplace_supervisor')
+                .prefetch_related('evaluations', 'reviewactions')
+                .filter(intern__in = my_students, status='REVIEWED')
             )
         
 
-        return WeeklyLog.objects.none()  # safety net for any other role
+        return WeeklyLog.objects.none()
 
     def get_serializer_class(self):
         # Use WriteSerializer for create/update, ReadSerializer for everything else

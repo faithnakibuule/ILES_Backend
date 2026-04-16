@@ -41,6 +41,7 @@ class LogReadSerializer(serializers.ModelSerializer):
             'status',
             'submitted_at',
             'overdue',
+            'latest_review_comment',
         ]
         read_only_fields = fields   # nothing can be written through this serializer
 

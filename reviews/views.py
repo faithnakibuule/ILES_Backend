@@ -45,9 +45,12 @@ class NotificationViewSet(viewsets.ModelViewSet):
 
     #every user only ever sees their own notifications
     def get_queryset(self):
-        return Notification.objects.filter(
-            recipient = self.request.user
-        ).order_by('-created_at')
+        return(
+            Notification.objects
+            .select_related('recipient')
+            .filter(recipient = self.request.user)
+            .order_by('-created_at')
+        )
     
     # PATCH -mark a notification as read
     @action(detail=True, methods=['patch'])
@@ -70,17 +73,27 @@ class EvaluationViewSet(viewsets.ModelViewSet):
     def get_queryset(self):
         user = self.request.user
 
+        base = (
+            Evaluation.objects
+            .select_related(
+                'log',
+                'log__intern',
+                'log__placement',
+                'academic_supervisor',
+            )
+        )
+
         #Academic supervisors see the evaluations they created
         if user.role == 'academic_supervisor':
-            return Evaluation.objects.filter(academic_supervisor=user)
+            return base.filter(academic_supervisor=user)
         
         #Students see evaluations for their own logs
         if user.role == 'student':
-            return Evaluation.objects.filter(log__intern=user)
+            return base.filter(log__intern=user)
         
         #Admins see everything
         if user.role == 'admin':
-            return Evaluation.objects.all()
+            return base.all()
         
         return Evaluation.objects.none()
     

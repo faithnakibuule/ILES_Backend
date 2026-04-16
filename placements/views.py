@@ -1,29 +1,46 @@
 from django.shortcuts import render
-#import exceptions to handle permission issues
 from rest_framework.exceptions import PermissionDenied
-#import viewsets to create a viewser for the InternshipPlcement model
 from rest_framework import viewsets,permissions
-#import the InternshipPlacement model and the PlacementSerializer to serialize the data
 from .models import InternshipPlacement
 from .serializers import PlacementSerializer
+
 
 class PlacementViewSet(viewsets.ModelViewSet):
     serializer_class = PlacementSerializer # Every request through this ViewSet uses PlacementSerializer
     permission_classes = [permissions.IsAuthenticated]#only logged in users can access this viewset
     
+    filterset_fields = ['status', 'company_name']#?status=ACTIVE or ?company_name=Tech
+    search_fields = [
+    'student__first_name',
+    'student__last_name', 
+    'student__email',
+    'company_name',
+]# ?search=john searches student name/email
+    ordering_fields = ['start_date', 'end_date', 'status', 'company_name']# Sorting: ?ordering=start_date
+    
     def get_queryset(self):
-        user = self.request.user#get the user making the request from the jwt token
+        user = self.request.user
+
+        base = (
+            InternshipPlacement.objects
+            .select_related(
+                'student',
+                'workplace_supervisor',
+                'academic_supervisor',
+            )
+            .prefetch_related('weeklylogs')
+        )
         
-        if user.role == 'admin':#admins can see all placements
-            return InternshipPlacement.objects.all()
-        elif user.role == 'student':#students can only see their own placements
-            return InternshipPlacement.objects.filter(student=user)
-        elif user.role == 'workplace_supervisor':#supervisors can only see placements they supervise
-            return InternshipPlacement.objects.filter(workplace_supervisor=user)
-        elif user.role == 'academic_supervisor':#academic supervisors can only see placements they supervise
-            return InternshipPlacement.objects.filter(academic_supervisor=user)
+        if user.role == 'admin':
+            return base.all()
+        elif user.role == 'student':
+            return base.filter(student=user)
+        elif user.role == 'workplace_supervisor':
+            return base.filter(workplace_supervisor=user)
+        elif user.role == 'academic_supervisor':
+            return base.filter(academic_supervisor=user)
         else:
-            return InternshipPlacement.objects.none()#other users cannot see any placements
+            return InternshipPlacement.objects.none()
     
     def perform_create(self, serializer):
         user = self.request.user
@@ -45,3 +62,4 @@ class PlacementViewSet(viewsets.ModelViewSet):
             raise PermissionDenied("You can only view placements you supervise.")
         return super().retrieve(request, *args, **kwargs)
            
+

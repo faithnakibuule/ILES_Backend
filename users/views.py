@@ -16,6 +16,8 @@ from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated
 from rest_framework import status
 from django.db.models import Count
+import csv
+from django.http import HttpResponse
 
 class RegisterView(generics.CreateAPIView):#This view allows users to register by creating a new CustomUser instance
     queryset = CustomUser.objects.all()    # using the RegisterSerializer. It is accessible to anyone (AllowAny permission).
@@ -144,3 +146,112 @@ class UserStatsView(APIView):
             'total_logs': total_logs,
             'approved_logs': approved_logs,
         }, status=status.HTTP_200_OK)
+
+
+class ExportPlacementsView(APIView):
+    """
+    GET /api/admin/export/placements/
+    Downloads a CSV file of all placements.
+    Admin only.
+    """
+    permission_classes = [IsAuthenticated, IsAdminUser]
+
+    def get(self, request):
+        # 1. Create an HttpResponse that tells browser to download a CSV
+        response = HttpResponse(content_type='text/csv')
+        response['Content-Disposition'] = 'attachment; filename="placements.csv"'
+
+        # 2. Create a CSV writer that writes directly into the response
+        writer = csv.writer(response)
+
+        # 3. Write the header row — these become the column names in Excel
+        writer.writerow([
+            'ID',
+            'Student',
+            'Student Email',
+            'Company',
+            'Workplace Supervisor',
+            'Academic Supervisor',
+            'Start Date',
+            'End Date',
+            'Status',
+        ])
+
+        # 4. Fetch all placements with related user data in one query
+        from placements.models import InternshipPlacement
+        placements = InternshipPlacement.objects.select_related(
+            'student',
+            'workplace_supervisor',
+            'academic_supervisor'
+        ).all()
+
+        # 5. Write one row per placement
+        for placement in placements:
+            writer.writerow([
+                placement.id,
+                f"{placement.student.first_name} {placement.student.last_name}".strip(),
+                placement.student.email,
+                placement.company_name,
+                f"{placement.workplace_supervisor.first_name} {placement.workplace_supervisor.last_name}".strip(),
+                # Academic supervisor is optional — may be None
+                f"{placement.academic_supervisor.first_name} {placement.academic_supervisor.last_name}".strip()
+                if placement.academic_supervisor else "Not Assigned",
+                placement.start_date,
+                placement.end_date,
+                placement.status,
+            ])
+
+        return response  # Django sends this as a file download
+
+
+class ExportLogsView(APIView):
+    """
+    GET /api/admin/export/logs/
+    Downloads a CSV file of all logs with status and scores.
+    Admin only.
+    """
+    permission_classes = [IsAuthenticated, IsAdminUser]
+
+    def get(self, request):
+        # 1. Create the CSV response
+        response = HttpResponse(content_type='text/csv')
+        response['Content-Disposition'] = 'attachment; filename="logs.csv"'
+
+        writer = csv.writer(response)
+
+        # 2. Header row
+        writer.writerow([
+            'ID',
+            'Student',
+            'Student Email',
+            'Week Number',
+            'Status',
+            'Submitted At',
+            'Total Score',
+        ])
+
+        # 3. Fetch all logs — prefetch evaluations for score data
+        from logbook.models import WeeklyLog
+        logs = WeeklyLog.objects.select_related(
+            'intern'
+        ).prefetch_related(
+            'evaluations'  # fetch all evaluations in one query
+        ).all()
+
+        # 4. Write one row per log
+        for log in logs:
+            # Get the latest evaluation score if it exists
+            latest_evaluation = log.evaluations.first()
+            score = latest_evaluation.total_score if latest_evaluation else "Not Scored"
+
+            writer.writerow([
+                log.id,
+                f"{log.intern.first_name} {log.intern.last_name}".strip(),
+                log.intern.email,
+                log.week_number,
+                log.status,
+                log.submitted_at,
+                score,
+            ])
+
+        return response
