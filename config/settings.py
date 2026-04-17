@@ -164,8 +164,8 @@ REST_FRAMEWORK ={
     'DEFAULT_THROTTLE_RATES': {
         'anon':     '100/day',   # default fallback for anonymous users
         'user':     '1000/day',  # default fallback for logged-in users
-        'login':    '5/minute',  # our custom LoginRateThrottle
-        'register': '3/hour',    # our custom RegisterRateThrottle
+        'login':    '100/minute',  # our custom LoginRateThrottle
+        'register': '50/hour',    # our custom RegisterRateThrottle
     },
 }
 
@@ -174,4 +174,5 @@ REST_FRAMEWORK ={
 CORS_ALLOWED_ORIGINS = [
     "http://localhost:5173",
 ]
+
 

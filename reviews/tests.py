@@ -52,10 +52,8 @@ class EvaluationTest(TestCase):
         }
         
     def _login(self, email, password = 'test123'):
-        response = self.client.post('/api/token/',
-            {'email': email, 'password': password}, format = 'json')
-        token = response.data['access']
-        self.client.credentials(HTTP_AUTHORIZATION = f'Bearer {token}')
+        user = User.objects.get(email = email)
+        self.client.force_authenticate(user = user)
 
     def _make_reviewed_log(self, week = 1):
         return WeeklyLog.objects.create(
@@ -154,6 +152,9 @@ class NotificationSignalTest(TestCase):
             email = 'academic@test.com', password = 'test123',
             first_name = 'Test', last_name = 'Supervisor', role = 'academic_supervisor'
         )
+        self.student.academic_supervisor = self.academic_sup
+        self.student.save()
+        
         self.placement = InternshipPlacement.objects.create(
             student = self.student,
             workplace_supervisor = self.workplace_sup,
@@ -181,7 +182,7 @@ class NotificationSignalTest(TestCase):
             learning_points = 'Learned a lot.',
             status = 'DRAFT'
         )
-        response = self.client.post(f'/api/logs/{log.id}/submit/')
+        response = self.client.post(f'/api/logbook/logs/{log.id}/submit/')
         self. assertEqual(response.status_code, status.HTTP_200_OK)
 
         unread = Notification.objects.filter(
@@ -224,7 +225,7 @@ class NotificationSignalTest(TestCase):
             status = 'SUBMITTED'
         )
         self._login('workplace@test.com', 'test123')
-        response = self.client.post(f'/api/logs/{log.id}/review/')
+        response = self.client.post(f'/api/logbook/logs/{log.id}/review/')
         self. assertEqual(response.status_code, status.HTTP_200_OK)
 
         notif = Notification.objects.filter(
@@ -244,8 +245,8 @@ class NotificationSignalTest(TestCase):
             status = 'SUBMITTED'
         )
         self._login('workplace@test.com', 'test123')
-        response = self.client.post(f'/api/logs/{log.id}/send_back/', {
-            'comment': 'Please add more detail.'
+        response = self.client.post(f'/api/logbook/logs/{log.id}/send_back/', {
+            'review_comment': 'Please add more detail.'
             }, format = 'json')
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 

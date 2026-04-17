@@ -118,11 +118,14 @@ class EvaluationViewSet(viewsets.ModelViewSet):
                 )
         
         #save the evaluation
-        evaluation = serializer.save(academic_supervisor=user, log=log)
+        evaluation = serializer.save(academic_supervisor=user)
 
         #transition log to APPROVED 
+        log = evaluation.log
         log.status = 'APPROVED'
         log.save()
+
+
 
 
 

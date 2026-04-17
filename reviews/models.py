@@ -50,7 +50,7 @@ class ReviewAction(models.Model):
     ]
 
     log = models.ForeignKey(
-        WeeklyLog,
+        'logbook.WeeklyLog',
         on_delete=models.CASCADE,
         related_name='review_actions'       # log.review_actions.all()
     )

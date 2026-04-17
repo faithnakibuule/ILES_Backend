@@ -1,7 +1,7 @@
 
 
 from rest_framework import serializers
-from .models import Evaluation, EvaluationCriteria, Notification,ReviewAction
+from .models import Evaluation, EvaluationCriteria, Notification,ReviewAction, WeeklyLog
 
 
 
@@ -84,3 +84,22 @@ class NotificationSerializer(serializers.ModelSerializer):
             'created_at',
         ]
         read_only_fields = ['id', 'message', 'notification_type', 'is_read', 'created_at']
+
+class LogWriteSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = WeeklyLog
+        fields = ['week_number', 'activities', 'learning_points']
+
+    def validate(self, data):
+        request = self.context.get('request')
+        if request and request.user:
+            week_number = data.get('week_number')
+            if not self.instance:
+                if WeeklyLog.objects.filter(
+                    intern = request.user,
+                    week_number = week_number
+                ). exists():
+                    raise serializers.ValidationError(
+                        {'week_number': f'You already have a log for week {week_number}.'}
+                    )
+        return data

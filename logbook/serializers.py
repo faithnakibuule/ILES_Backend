@@ -59,7 +59,6 @@ class LogWriteSerializer(serializers.ModelSerializer):
                 "Week number must be between 1 and 12."
             )
         return value  # always return value if valid — or data gets swallowed
-
     class Meta:
         model = WeeklyLog
         fields = [
@@ -70,6 +69,17 @@ class LogWriteSerializer(serializers.ModelSerializer):
         ]
         # No read_only_fields — this serializer is meant for writing
 
+    def validate(self, data):
+        request = self.context.get('request')
+        if request and not self.instance:
+            if WeeklyLog.objects.filter(
+                intern = request.user,
+                week_number = data.get('week_number')
+            ). exists():
+                raise serializers.ValidationError(
+                    {'week_number': f"You already have a log for week {data.get('week_number')}"}
+                )
+        return data
 class LogReviewSerializer(serializers.Serializer):
     """
     used when supervisor sends back a comment

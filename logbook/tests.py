@@ -136,12 +136,12 @@ class TestUniqueTogetherConstraint(LogbookTestCase):
     def test_student_can_create_logs_for_different_weeks(self):
         self.client.force_authenticate(user=self.student)
 
-        self.client.post('/api/logs/', {
+        self.client.post('/api/logbook/logs/', {
             'week_number': 1, 'activities': 'Week 1 activities.',
             'learning_points': 'Week 1 learning.', 'placement': self.placement.id,
         }, format='json')
 
-        response = self.client.post('/api/logs/', {
+        response = self.client.post('/api/logbook/logs/', {
             'week_number': 2, 'activities': 'Week 2 activities.',
             'learning_points': 'Week 2 learning.', 'placement': self.placement.id,
         }, format='json')
@@ -198,8 +198,9 @@ class TestSupervisorLogAccess(LogbookTestCase):
         response = self.client.get('/api/logbook/logs/', format='json')
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-
-        returned_ids = [log['id'] for log in response.data]
+        
+        data = response.data.get('results', response.data)
+        returned_ids = [log['id'] for log in data]
 
         self.assertIn(
             self.log_student1.id, returned_ids,
@@ -227,7 +228,8 @@ class TestSupervisorLogAccess(LogbookTestCase):
         self.client.force_authenticate(user=self.supervisor)
         response = self.client.get('/api/logbook/logs/', format='json')
 
-        returned_ids = [log['id'] for log in response.data]
+        data = response.data.get('results', response.data)
+        returned_ids = [log['id'] for log in data]
         self.assertNotIn(
             draft_log.id, returned_ids,
             'Supervisor should not see DRAFT logs.'
