@@ -28,7 +28,7 @@ class PlacementViewSet(viewsets.ModelViewSet):
                 'workplace_supervisor',
                 'academic_supervisor',
             )
-            .prefetch_related('weeklylogs')
+            .prefetch_related('weekly_logs')
         )
         
         if user.role == 'admin':

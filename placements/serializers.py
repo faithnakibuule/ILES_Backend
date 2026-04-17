@@ -1,5 +1,7 @@
 # placements/serializers.py
 
+from tracemalloc import start
+
 from rest_framework import serializers
 from .models import InternshipPlacement
 from users.serializers import CustomUserSerializer
@@ -40,12 +42,11 @@ class PlacementSerializer(serializers.ModelSerializer):
         Check that end_date is after start_date.
         Object-level validation: sees all fields together.
         """
-        start = data.get('start_date')
-        end = data.get('end_date')
+        start_date = data.get('start_date')
+        end_date = data.get('end_date')
 
-        if start >= end and end <= start:
-            raise serializers.ValidationError(
-                {"end_date": "End date must be after start date."}
-            )
+        if start_date is not None and end_date is not None:
+            if start_date >= end_date:
+                raise serializers.ValidationError("End date must be after start date")
         
         return data

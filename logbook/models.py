@@ -30,6 +30,7 @@ class WeeklyLog(models.Model):
                 choices=STATUS_CHOICES,
                 default='DRAFT'
     )
+
     submitted_at = models.DateTimeField(null=True, blank=True)
     supervisor_comment = models.TextField(null=True, blank=True)
 
