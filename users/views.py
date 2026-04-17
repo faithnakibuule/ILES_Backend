@@ -18,11 +18,12 @@ from rest_framework import status
 from django.db.models import Count
 import csv
 from django.http import HttpResponse
-
+from .throttles import LoginRateThrottle, RegisterRateThrottle
 class RegisterView(generics.CreateAPIView):#This view allows users to register by creating a new CustomUser instance
     queryset = CustomUser.objects.all()    # using the RegisterSerializer. It is accessible to anyone (AllowAny permission).
     serializer_class = RegisterSerializer
     permission_classes = [permissions.AllowAny]
+    throttle_classes = [RegisterRateThrottle]
 
 class MeView(generics.RetrieveUpdateAPIView):#This view allows authenticated users to retrieve their own user information.
     serializer_class = CustomUserSerializer #
@@ -40,6 +41,7 @@ class MeView(generics.RetrieveUpdateAPIView):#This view allows authenticated use
 class CustomTokenObtainPairView(TokenObtainPairView):# It uses the CustomTokenObtainPairSerializer to customize the token generation process
     serializer_class = CustomTokenObtainPairSerializer
     permission_classes = [permissions.AllowAny]
+    throttle_classes = [LoginRateThrottle]
 
 class WeeklyLogListView(generics.ListCreateAPIView):
     queryset = []
