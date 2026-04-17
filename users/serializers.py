@@ -3,7 +3,8 @@ from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 from django.contrib.auth import get_user_model
 from .models import CustomUser
 from reviews.models import Notification
-User = get_user_model
+
+User = get_user_model()
 
 #shows user data
 class CustomUserSerializer(serializers.ModelSerializer):
@@ -28,6 +29,11 @@ class RegisterSerializer(serializers.ModelSerializer):
     def validate(self, data):
         if data['password'] != data['confirm_password']:
             raise serializers.ValidationError("Passwords do not match.")
+        
+        # Check email uniqueness
+        if CustomUser.objects.filter(email=data['email']).exists():
+            raise serializers.ValidationError("Email already exists")
+
         return data
     
     def create(self, validated_data):
