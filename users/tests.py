@@ -120,3 +120,5 @@ class AuthAPITests(TestCase):
         }, format='json')
 
         self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)    
+        
+        
