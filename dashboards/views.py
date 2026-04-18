@@ -129,65 +129,40 @@ class AcademicStatsView(APIView):
 
 # ── StudentProgressView ───────────────────────────────────────────────────────
 class StudentProgressView(APIView):
-    
     permission_classes = [IsAuthenticated]
 
-    def get(self, request, student_id):
-        try:
-            from logbook.models import WeeklyLog
-            from users.models import CustomUser
+    def get(self, request, student_id=None):
+        # If /me/ route — use the logged-in user themselves
+        if student_id is None:
+            student_id = request.user.id
 
-            # Confirm the student exists
-            student = get_object_or_404(CustomUser, id=student_id, role='student')
+        student = get_object_or_404(CustomUser, id=student_id, role='student')
 
-            # Security check: students can only see their OWN progress
-            # Academic supervisors and admins can see anyone's
-            user = request.user
-            is_student_viewing_own = (
-                user.role == 'student' and user.id == student.id
-            )
-            is_privileged = user.role in [
-                'academic_supervisor', 'admin'
-            ]
+        # Security: students can only see their own
+        if request.user.role == 'student' and request.user.id != student.id:
+            return Response({'error': 'Forbidden'}, status=403)
 
-            if not is_student_viewing_own and not is_privileged:
-                return Response(
-                    {'error': 'You do not have permission to view this student\'s progress.'},
-                    status=status.HTTP_403_FORBIDDEN
-                )
+        logs = (
+            WeeklyLog.objects
+            .prefetch_related('evaluations')
+            .filter(intern=student)
+            .order_by('week_number')
+        )
 
-            # Fetch all logs for this student, ordered by week
-            logs = (
-                WeeklyLog.objects
-                .prefetch_related('evaluations')
-                .filter(intern = student)
-                .order_by('week_number')
-            )
+        progress_data = []
+        for log in logs:
+            score = None
+            if log.status == 'APPROVED':
+                evaluation = log.evaluations.first()
+                if evaluation:
+                    score = float(evaluation.total_score)
+            progress_data.append({
+                'week_number': log.week_number,
+                'status': log.status,
+                'score_if_approved': score,
+            })
 
-            # Build the response list
-            progress_data = []
-            for log in logs:
-                # Try to get the evaluation score if this log was approved
-                score = None
-                if log.status == 'APPROVED':
-                    evaluation = log.evaluations.first()
-                    if evaluation:
-                        score = float(evaluation.total_score)
-                
-
-                progress_data.append({
-                    'week_number': log.week_number,
-                    'status': log.status,
-                    'score_if_approved': score,
-                })
-
-            return Response(progress_data, status=status.HTTP_200_OK)
-
-        except Exception as e:
-            return Response(
-                {'error': str(e)},
-                status=status.HTTP_500_INTERNAL_SERVER_ERROR
-            )
+        return Response(progress_data)
         
 class PendingLogsView(ListAPIView):
     permission_classes = [IsAuthenticated]

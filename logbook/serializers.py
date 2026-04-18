@@ -71,6 +71,12 @@ class LogWriteSerializer(serializers.ModelSerializer):
 
     def validate(self, data):
         request = self.context.get('request')
+
+        if self.instance and self.instance.status != 'DRAFT':
+            raise serializers.ValidationError(
+                "You can only edit a log that is in DRAFT status."
+            )
+        
         if request and not self.instance:
             if WeeklyLog.objects.filter(
                 intern = request.user,

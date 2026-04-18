@@ -46,7 +46,7 @@ class LogViewSet(viewsets.ModelViewSet):
                 .select_related('intern', 'placement', 'placement__workplace_supervisor')
                 .prefetch_related('evaluations', 'review_actions')
                 .filter(placement__workplace_supervisor=user,
-                         status__in = ['SUBMIITED', 'REVIEWED', 'APPROVED'])
+                         status__in = ['SUBMITTED', 'REVIEWED', 'APPROVED'])
                 .order_by('week_number')
             )
         

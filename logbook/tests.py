@@ -1,9 +1,9 @@
 from django.test import TestCase
+from django.utils import timezone 
 from django.urls import reverse
 from rest_framework.test import APIClient
 from rest_framework import status
 from django.contrib.auth import get_user_model
-
 from logbook.models import WeeklyLog
 from placements.models import InternshipPlacement
 
@@ -322,3 +322,146 @@ class TestLogStatusTransitions(LogbookTestCase):
         )
         self.log.refresh_from_db()
         self.assertEqual(self.log.status, 'SUBMITTED')
+class TestUpdatedDraftLog(LogbookTestCase):
+    def setUp(self):
+        super().setUp()
+        self.log = WeeklyLog.objects.create(
+            intern=self.student,
+            placement=self.placement,
+            week_number=1,
+            activities='Original activities.',
+            learning_points='Original learning.',
+            status='DRAFT',
+        )
+
+        def test_student_can_update_own_draft_log(self):
+            self.client.force_authenticate(user=self.student)
+
+            response = self.client.path(
+                f'/api/logbook/logs/{self.log.id}/',
+                {'activities': 'Updated activities.'},
+                format='json',
+            )
+
+            self.assertEqual(response.status_code, status.HTTP_200_OK)
+            self.log.refresh_from_db()
+            self.assertEqual(self.log.activities, 'Updated activities. ')
+
+class TestCannotUpdateSubmittedLog(LogbookTestCase):
+
+    def setUp(self):
+        super().setUp()
+        self.log = WeeklyLog.objects.create(
+            intern=self.student,
+            placement=self.placement,
+            week_number=1,
+            activities='Submitted activities.',
+            learning_points='Submitted activities.',
+            status='SUBMITTED',
+        )
+
+        def test_student_cannot_update_submitted_log(self):
+            self.client.force_authenticate(user=self.student)
+
+            response =self.client.patch(
+                f'/api/logbook/logs/{self.log.id}',
+                {'activities': 'Sneaky edit.'},
+                format='json',
+            )
+            self.assertIn(response.status_code, [status.HTTP_400_BAD_REQUEST, status.HTTP_403_FORBIDDEN])
+            self.log.refresh_from_db()
+            self.assertEqual(self.log.activities, 'Submitted activities.')
+
+class TestOverdueDetection(LogbookTestCase):
+    def test_unsubmitted_log_past_deadline_is_overdue(self):
+        log = WeeklyLog.objects.create(
+            intern=self.student,
+            placement=self.placement,
+            week_number=1,
+            activities='Draft.',
+            learning_points='Draft.',
+            status='DRAFT',
+            submitted_at=None,
+        )
+        self.assertTrue(log.is_overdue)
+
+    def test_unsubmitted_log_before_deadline_is_not_overdue(self):
+        log = WeeklyLog.objects.create(
+            intern=self.student,
+            placement=self.student,
+            week_number=200,
+            activities='Future',
+            learning_points='On time.',
+            status='SUBMITTED',
+            submitted_at=timezone.datetime(2025, 1, 15, tzinfo=timezone.utc),
+        )
+        self.assertTrue(log.is_overdue)
+
+class TestSendBackFlow(LogbookTestCase):
+
+    def setUp(self):
+        super().setUp()
+        self.log = WeeklyLog.objects.create(
+            intern=self.student,
+            placement=self.placement,
+            week_number=1,
+            learning_points='Ready.',
+            status='SUBMITTED',
+        )
+
+    def test_supervisor_can_send_back_with_comment(self):
+        self.client.force_authenticate(user=self.supervisor)
+
+        response = self.client.post(
+            f'/api/logbook/logs/{self.log.id}/send_back/',
+            {'review_comment': 'Please add more detail.'},
+            format='json',
+        )
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.log.refresh_from_db()
+        self.assertEqual(self.log.status, 'DRAFT')
+
+        def test_send_back_requires_comment(self):
+            self.client.force_authenticate(user=self.supervisor)
+
+            response = self.client.post(
+                f'/api/logbook/logs/{self.log.id}/send_back/',
+                {},
+                format='json',
+            )
+
+            self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+            self.log.refresh_from_db()
+            self.assertEqual(self.log.status, 'SUBMITTED')
+
+        def test_student_cannot_send_back(self):
+            self.client.force_authenticate(user=self.student)
+
+            response = self.client.post(
+                f'/api/logbook/logs/{self.log.id}/send_back/',
+                {'review_comment': 'Should not work.'},
+                format='json',
+            )
+            self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+
+            def test_full_send_back_cycle(self):
+                self.client.force_authenticate(user=self.supervisor)
+                self.client.post(
+                    f'/api/logbook/logs/{self.log.id}/send_back/',
+                    {'review_comment': 'Add more details.'},
+                    format='json',
+                )
+                self.client.force_authenticate(user=self.student)
+                edit = self.slient.patch(
+                    f'/api/logbook/logs/{self.log.id}/',
+                    {'activities': 'Revised with more detail.'},
+                    format='json',
+                )
+                self.assertEqual(edit.status_code, status.HTTP_200_OK)
+                resubmit = self.client.post(
+                    f'/api/logbook/logs/{self.log.id}/submit/',
+                    format='json',
+                )
+                self.assertEqual(resubmit.status_code, status.HTTP_200_OK)
+                self.log.refresh_from_db()
+                self.assertEqual(self.log.status, 'SUBMITTED')
