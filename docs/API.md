@@ -239,14 +239,14 @@ Numbers shown on each user's dashboard screen.
 
 Endpoint                                |  Who uses it        | What it returns 
 GET /api/dashboards/student-stats/      |Student              |Logs Submitted , approved , overdue
-GET /api/dashboards/workplace-stats/ | Workplace Supervisor  | Pending reviews, total interns 
-GET /api/dashboards/academic-stats/   | Academic Supervisor        | Logs to score average cohort score 
-GET /api/dashboards/admin-stats/  | Admin  | Total students, active placements 
-GET /api/dashboards/pending-logs/ | Workplace Supervisor  | List of logs waiting fro review
-GET /api/dashboards/student-progress/me/   | Any   |How many logs exist per week 
-GET /api/dashboards/logs-per-week/  | Any    | How many logs exist per week
-GET /api/dashboards/status-distribution/   | Any  | Count of logs by status
-GET /api/dashboards/cohort-scores     |Academic Supervisor    | Ranked list of student scores 
+GET /api/dashboards/workplace-stats/    | Workplace Supervisor  | Pending reviews, total interns 
+GET /api/dashboards/academic-stats/     | Academic Supervisor        | Logs to score average cohort score 
+GET /api/dashboards/admin-stats/        | Admin  | Total students, active placements 
+GET /api/dashboards/pending-logs/       | Workplace Supervisor  | List of logs waiting fro review
+GET /api/dashboards/student-progress/me/ | Any   |How many logs exist per week 
+GET /api/dashboards/logs-per-week/      | Any    | How many logs exist per week
+GET /api/dashboards/status-distribution/ | Any  | Count of logs by status
+GET /api/dashboards/cohort-scores        |Academic Supervisor    | Ranked list of student scores 
 
 When Things go Wrong 
 code    | What it means    | What to do on the frontend 
@@ -256,4 +256,3 @@ code    | What it means    | What to do on the frontend
 404    | That item doesnt exist     | Show  "Not Found " message 
 429    | Too many attempts    | Show "Please wait and try again "
 500    | Something broke on the server     | Show " Something went wrong " 
-     
