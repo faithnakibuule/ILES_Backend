@@ -393,7 +393,7 @@ class TestOverdueDetection(LogbookTestCase):
             activities='Future',
             learning_points='On time.',
             status='SUBMITTED',
-            submitted_at=timezone.datetime(2025, 1, 15, tzinfo=timezone.utc),
+            submitted_at=timezone.datetime(2025, 1, 15, tzinfo=timezone.UTC),
         )
         self.assertTrue(log.is_overdue)
 

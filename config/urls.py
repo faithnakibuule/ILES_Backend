@@ -12,3 +12,4 @@ urlpatterns = [
     path('api/logbook/', include('logbook.urls')),
     path('api/', include('reviews.urls')),
 ]
+

@@ -1,0 +1,81 @@
+Name                                                                             Stmts   Miss  Cover   Missing
+--------------------------------------------------------------------------------------------------------------
+api\__init__.py                                                                      0      0   100%
+api\migrations\__init__.py                                                           0      0   100%
+api\tests.py                                                                         1      0   100%
+config\__init__.py                                                                   0      0   100%
+config\settings.py                                                                  20      0   100%
+config\urls.py                                                                       3      0   100%
+dashboards\__init__.py                                                               0      0   100%
+dashboards\admin.py                                                                  1      0   100%
+dashboards\apps.py                                                                   3      0   100%
+dashboards\migrations\__init__.py                                                    0      0   100%
+dashboards\models.py                                                                 1      0   100%
+dashboards\tests.py                                                                 92      0   100%
+dashboards\urls.py                                                                   4      0   100%
+dashboards\views.py                                                                110     60    45%   28-41, 53-61, 69-88, 98-122, 136-165, 171, 185-191, 197-203, 210-245
+logbook\__init__.py                                                                  0      0   100%
+logbook\admin.py                                                                     3      0   100%
+logbook\apps.py                                                                      6      0   100%
+logbook\filters.py                                                                   8      0   100%
+logbook\migrations\0001_initial.py                                                   7      0   100%
+logbook\migrations\0002_weeklylog_supervisor_comment.py                              4      0   100%
+logbook\migrations\0003_alter_weeklylog_status.py                                    4      0   100%
+logbook\migrations\0004_reviewaction.py                                              6      0   100%
+logbook\migrations\0005_alter_reviewaction_log_alter_weeklylog_submitted_at.py       6      0   100%
+logbook\migrations\0006_alter_weeklylog_submitted_at.py                              4      0   100%
+logbook\migrations\__init__.py                                                       0      0   100%
+logbook\models.py                                                                   44      2    95%   59, 79
+logbook\permissions.py                                                               4      0   100%
+logbook\serializers.py                                                              34      3    91%   29, 58, 76
+logbook\services.py                                                                 13      4    69%   8, 13-15
+logbook\signals.py                                                                  34      3    91%   15-16, 30
+logbook\tests.py                                                                   161     40    75%   327-348, 353-373, 398, 420-467
+logbook\urls.py                                                                      7      0   100%
+logbook\views.py                                                                    66      7    89%   53-62, 89, 109, 115
+manage.py                                                                           11      2    82%   12-13
+placements\__init__.py                                                               0      0   100%
+placements\admin.py                                                                  5      0   100%
+placements\apps.py                                                                   3      0   100%
+placements\migrations\0001_initial.py                                                7      0   100%
+placements\migrations\0002_remove_internshipplacement_start_daate_and_more.py        4      0   100%
+placements\migrations\0003_alter_internshipplacement_end_date_and_more.py            4      0   100%
+placements\migrations\0004_internshipplacement_academic_supervisor.py                6      0   100%
+placements\migrations\__init__.py                                                    0      0   100%
+placements\models.py                                                                13      1    92%   42
+placements\serializers.py                                                           19      0   100%
+placements\tests.py                                                                 59      8    86%   29-37, 40-49, 56, 60
+placements\urls.py                                                                   6      0   100%
+placements\views.py                                                                 38     14    63%   38-43, 53-63
+reviews\__init__.py                                                                  0      0   100%
+reviews\admin.py                                                                     4      0   100%
+reviews\apps.py                                                                      3      0   100%
+reviews\management\__init__.py                                                       0      0   100%
+reviews\management\commands\__init__.py                                              0      0   100%
+reviews\migrations\0001_initial.py                                                   7      0   100%
+reviews\migrations\0002_reviewaction.py                                              6      0   100%
+reviews\migrations\0003_notification.py                                              6      0   100%
+reviews\migrations\__init__.py                                                       0      0   100%
+reviews\models.py                                                                   46      4    91%   16, 38, 70, 104
+reviews\serializers.py                                                              61     15    75%   18, 26-28, 31-32, 35, 41, 94-105
+reviews\tests.py                                                                    99      3    97%   251-257
+reviews\urls.py                                                                      7      0   100%
+reviews\views.py                                                                    73     18    75%   18, 23, 31-39, 66-67, 88, 95-98, 105, 111-112
+users\__init__.py                                                                    0      0   100%
+users\admin.py                                                                      10      0   100%
+users\admin_urls.py                                                                  7      0   100%
+users\apps.py                                                                        3      0   100%
+users\migrations\0001_initial.py                                                     6      0   100%
+users\migrations\0002_customuser_academic_supervisor.py                              6      0   100%
+users\migrations\0003_remove_customuser_phone.py                                     4      0   100%
+users\migrations\0004_customuser_phone.py                                            4      0   100%
+users\migrations\__init__.py                                                         0      0   100%
+users\models.py                                                                     28      1    96%   9
+users\permissions.py                                                                13      4    69%   7, 14, 21, 28
+users\serializers.py                                                                51      3    94%   35, 67, 73
+users\tests.py                                                                      48      0   100%
+users\throttles.py                                                                   5      0   100%
+users\urls.py                                                                        4      0   100%
+users\views.py                                                                     109     45    59%   34, 52, 82-86, 94-95, 108-143, 163-206, 219-259
+--------------------------------------------------------------------------------------------------------------
+TOTAL                                                                             1431    237    83%
