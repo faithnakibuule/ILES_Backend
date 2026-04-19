@@ -44,12 +44,13 @@ class WeeklyLog(models.Model):
      
     @property
     def is_overdue(self):
+        from datetime import date
+        start = self.placement.start_date
+        if isinstance(start, str):
+            start = date.fromisoformat(start)
+        deadline = start + timedelta(days = 7 * self.week_number)
         if not self.submitted_at:
-            #not submitted yet, check if deadline has passed
-            deadline = self.placement.start_date + timedelta(days=7 * self.week_number)
             return timezone.now().date() > deadline
-        #check if submitted after deadline
-        deadline = self.placement.start_date + timedelta(days=7 * self.week_number)
         return self.submitted_at.date() > deadline
     class Meta:
         unique_together = [['intern', 'week_number']]

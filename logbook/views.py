@@ -126,15 +126,6 @@ class LogViewSet(viewsets.ModelViewSet):
 
         log.status = 'DRAFT'
         log.save()
-
-        from reviews.models import Notification
-        Notification.objects.create(
-            recipient = log.intern,
-            message = f'Your Week {log.week_number} log  was sent back: {comment}',
-            notification_type = 'LOG_SENT_BACK',
-            is_read = False
-        )
-        return Response({'message': 'Log sent back to student for revision.'})
     
     def perform_create(self, serializer):
         serializer.save(intern=self.request.user)
