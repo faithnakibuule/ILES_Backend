@@ -444,7 +444,7 @@ class RolePermissionScoringTest(TestCase):
             'criteria_scores': {str(self.criteria.id):70}
         }, format='json')
         
-    def _make_log(Self, status_val, week=1):
+    def _make_log(self, status_val, week=1):
         return WeeklyLog.objects.create(
             intern=self.student, placement=self.placement,
             week_number=week, activities='...', learning_points='...',

@@ -126,6 +126,8 @@ class LogViewSet(viewsets.ModelViewSet):
 
         log.status = 'DRAFT'
         log.save()
+
+        return Response({'message': 'Log sent back for revision.'})
     
     def perform_create(self, serializer):
         serializer.save(intern=self.request.user)
