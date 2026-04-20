@@ -1,4 +1,4 @@
-from rest_framework import viewsets 
+from rest_framework import status, viewsets 
 from rest_framework.decorators import action
 from rest_framework.response import Response
 from rest_framework.exceptions import ValidationError
@@ -90,6 +90,8 @@ class LogViewSet(viewsets.ModelViewSet):
         
         log.status = 'REVIEWED'
         log.save()
+        comment = request.data.get('comment', request.data.get('review_comment', ''))
+        return Response({'status': 'log sent back', 'comment': comment}, status=200)
 
         ReviewAction.objects.create(
             log = log,
@@ -127,7 +129,12 @@ class LogViewSet(viewsets.ModelViewSet):
         log.status = 'DRAFT'
         log.save()
 
-        return Response({'message': 'Log sent back for revision.'})
+        return Response({
+            'status': 'log sent back',
+            'message': 'Log returned to student for revisions.',
+            'comment': comment
+        }, status=status.HTTP_200_OK)        
+
     
     def perform_create(self, serializer):
         serializer.save(intern=self.request.user)

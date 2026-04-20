@@ -388,14 +388,14 @@ class TestOverdueDetection(LogbookTestCase):
     def test_unsubmitted_log_before_deadline_is_not_overdue(self):
         log = WeeklyLog.objects.create(
             intern=self.student,
-            placement=self.student,
+            placement=self.placement,
             week_number=200,
             activities='Future',
             learning_points='On time.',
             status='SUBMITTED',
             submitted_at=timezone.datetime(2025, 1, 15, tzinfo=timezone.UTC),
         )
-        self.assertTrue(log.is_overdue)
+        self.assertFalse(log.is_overdue)
 
 class TestSendBackFlow(LogbookTestCase):
 
