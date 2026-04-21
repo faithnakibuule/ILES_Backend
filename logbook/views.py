@@ -134,6 +134,7 @@ class LogViewSet(viewsets.ModelViewSet):
             'message': 'Log returned to student for revisions.',
             'comment': comment
         }, status=status.HTTP_200_OK)        
+
     
     def perform_create(self, serializer):
         serializer.save(intern=self.request.user)
