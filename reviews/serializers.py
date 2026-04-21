@@ -3,7 +3,14 @@
 from rest_framework import serializers
 from .models import Evaluation, EvaluationCriteria, Notification,ReviewAction, WeeklyLog
 
-
+class EvaluationCriteriaSerializer(serializers.ModelSerializer):
+    """
+    Exposes the evaluation rubric to the frontend.
+    Students use this to display score breakdowns on MyScoresPage.
+    """
+    class Meta:
+        model = EvaluationCriteria
+        fields = ['id', 'name', 'description', 'max_score', 'weight']
 
 class EvaluationSerializer(serializers.ModelSerializer):
     criteria_scores = serializers.JSONField(write_only=True)
