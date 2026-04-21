@@ -142,7 +142,7 @@ REST_FRAMEWORK ={
     'DEFAULT_PERMISSION_CLASSES': [
         'rest_framework.permissions.IsAuthenticated',
     ],
-    'DEFAULT PARSER CLASSES': [
+    'DEFAULT_PARSER_CLASSES': [
         'rest_framework.parsers.JSONParser',
         'rest_framework.parsers.FormParser',
         'rest_framework.parsers.MultiPartParser',
@@ -167,6 +167,8 @@ REST_FRAMEWORK ={
         'login':    '100/minute',  # our custom LoginRateThrottle
         'register': '50/hour',    # our custom RegisterRateThrottle
     },
+
+    'EXCEPTION_HANDLER': 'api.error_handlers.custom_exception_handler',
 }
 
 #CORS SETTINGS

@@ -10,6 +10,6 @@ urlpatterns = [
     path('api/placements/', include('placements.urls')),
     path('api/dashboards/', include('dashboards.urls')),
     path('api/logbook/', include('logbook.urls')),
-    path('api/', include('reviews.urls')),
+    path('api/reviews/', include('reviews.urls')),
 ]
 

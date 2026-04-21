@@ -10,6 +10,7 @@ from rest_framework import status
 from .serializers import NotificationSerializer, EvaluationSerializer
 from .models import Notification, Evaluation
 from rest_framework.exceptions import PermissionDenied, ValidationError
+from django_filters.rest_framework import DjangoFilterBackend
 
 
 class NotificationListView(APIView):
@@ -42,6 +43,10 @@ class ReviewHistoryView(APIView):
 class NotificationViewSet(viewsets.ModelViewSet):
     permission_classes = [IsAuthenticated]
     serializer_class = NotificationSerializer
+
+    filter_backends = [DjangoFilterBackend]
+    filterset_fields = ['is_read', 'notification_type', 'recipient']
+
 
     #every user only ever sees their own notifications
     def get_queryset(self):
