@@ -45,10 +45,34 @@ class RegisterSerializer(serializers.ModelSerializer):
         )            
 
 class UserUpdateSerializer(serializers.ModelSerializer):
-    class Meta:
+    """
+    PATCH /api/auth/me/
+    
+    Accepts full_name (a single display string) from the frontend,
+    splits it into first_name + last_name, and saves both.
+    Also accepts phone. 
+    """
+    full_name = serializers.CharField(required=False, allow_blank=True)
 
+    class Meta:
         model = CustomUser
-        fields = ['first_name','last_name','phone']
+        fields = ['full_name', 'phone']
+
+    def update(self, instance, validated_data):
+        # Pop full_name — it's not a real model field, we need to split it
+        full_name = validated_data.pop('full_name', None)
+
+        if full_name is not None:
+            parts = full_name.strip().split(' ', 1)      # split on FIRST space only
+            instance.first_name = parts[0]               # everything before first space
+            instance.last_name  = parts[1] if len(parts) > 1 else ''  # rest, or blank
+
+        # phone IS a real model field — standard update
+        if 'phone' in validated_data:
+            instance.phone = validated_data['phone']
+
+        instance.save()
+        return instance
 
 class CustomTokenObtainPairSerializer(TokenObtainPairSerializer):
     @classmethod

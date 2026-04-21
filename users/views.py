@@ -25,8 +25,14 @@ class RegisterView(generics.CreateAPIView):#This view allows users to register b
     permission_classes = [permissions.AllowAny]
     throttle_classes = [RegisterRateThrottle]
 
-class MeView(generics.RetrieveUpdateAPIView):#This view allows authenticated users to retrieve their own user information.
-    serializer_class = CustomUserSerializer #
+class MeView(generics.RetrieveUpdateAPIView):
+    """
+    GET  /api/auth/me/ — returns current user's profile (CustomUserSerializer)
+    PATCH /api/auth/me/ — updates name/phone (UserUpdateSerializer), 
+                          then returns the updated profile using CustomUserSerializer
+                          so the frontend gets full_name back immediately.
+    """
+    serializer_class = CustomUserSerializer
     permission_classes = [permissions.IsAuthenticated]
     
     def get_serializer_class(self):
@@ -36,6 +42,19 @@ class MeView(generics.RetrieveUpdateAPIView):#This view allows authenticated use
 
     def get_object(self):
         return self.request.user
+
+    def update(self, request, *args, **kwargs):
+        # Run the PATCH using UserUpdateSerializer (validates + saves)
+        partial = kwargs.pop('partial', False)
+        instance = self.get_object()
+        serializer = UserUpdateSerializer(instance, data=request.data, partial=partial)
+        serializer.is_valid(raise_exception=True)
+        updated_user = serializer.save()
+
+        # Return the full profile using CustomUserSerializer so frontend
+        # gets full_name, email, role — not just the write-only fields
+        response_serializer = CustomUserSerializer(updated_user)
+        return Response(response_serializer.data)
     
     
 class CustomTokenObtainPairView(TokenObtainPairView):# It uses the CustomTokenObtainPairSerializer to customize the token generation process
