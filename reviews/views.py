@@ -5,10 +5,10 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework import viewsets
 from rest_framework.decorators import action
 from logbook.models import WeeklyLog
-from .serializers import ReviewActionSerializer
+from .serializers import ReviewActionSerializer,EvaluationCriteriaSerializer
 from rest_framework import status
 from .serializers import NotificationSerializer, EvaluationSerializer
-from .models import Notification, Evaluation
+from .models import Notification, Evaluation,EvaluationCriteria
 from rest_framework.exceptions import PermissionDenied, ValidationError
 from django_filters.rest_framework import DjangoFilterBackend
 
@@ -129,6 +129,19 @@ class EvaluationViewSet(viewsets.ModelViewSet):
         log = evaluation.log
         log.status = 'APPROVED'
         log.save()
+
+
+class CriteriaViewSet(viewsets.ReadOnlyModelViewSet):
+    """
+    GET /api/reviews/criteria/        — list all evaluation criteria
+    GET /api/reviews/criteria/{id}/   — retrieve one criterion
+    
+    Read-only. Any authenticated user can fetch the criteria rubric.
+    Students need this to display score breakdowns on MyScoresPage.
+    """
+    queryset = EvaluationCriteria.objects.all().order_by('id')
+    serializer_class = EvaluationCriteriaSerializer
+    permission_classes = [IsAuthenticated]
 
 
 
