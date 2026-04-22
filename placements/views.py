@@ -1,65 +1,175 @@
-from django.shortcuts import render
-from rest_framework.exceptions import PermissionDenied
-from rest_framework import viewsets,permissions
-from .models import InternshipPlacement
-from .serializers import PlacementSerializer
+from django.db.models import Count, Q
+
+from rest_framework import permissions, status, viewsets
+from rest_framework.decorators import action
+from rest_framework.exceptions import PermissionDenied, ValidationError
+from rest_framework.response import Response
+
+from logbook.models import WeeklyLog
+from users.models import CustomUser
+from users.serializers import CustomUserSerializer
+
+from .models import Company, InternshipPlacement
+from .serializers import CompanySerializer, PlacementSerializer
 
 
 class PlacementViewSet(viewsets.ModelViewSet):
-    serializer_class = PlacementSerializer # Every request through this ViewSet uses PlacementSerializer
-    permission_classes = [permissions.IsAuthenticated]#only logged in users can access this viewset
-    
-    filterset_fields = ['status', 'company_name']#?status=ACTIVE or ?company_name=Tech
+    serializer_class = PlacementSerializer
+    permission_classes = [permissions.IsAuthenticated]
+    filterset_fields = ["status", "company_name", "company"]
     search_fields = [
-    'student__first_name',
-    'student__last_name', 
-    'student__email',
-    'company_name',
-]# ?search=john searches student name/email
-    ordering_fields = ['start_date', 'end_date', 'status', 'company_name']# Sorting: ?ordering=start_date
-    
+        "student__first_name",
+        "student__last_name",
+        "student__email",
+        "company_name",
+    ]
+    ordering_fields = ["start_date", "end_date", "status", "company_name"]
+
     def get_queryset(self):
         user = self.request.user
-
         base = (
-            InternshipPlacement.objects
-            .select_related(
-                'student',
-                'workplace_supervisor',
-                'academic_supervisor',
+            InternshipPlacement.objects.select_related(
+                "student",
+                "workplace_supervisor",
+                "academic_supervisor",
+                "company",
             )
-            .prefetch_related('weekly_logs')
+            .prefetch_related("weekly_logs")
+            .order_by("-start_date", "-id")
         )
-        
-        if user.role == 'admin':
-            return base.all()
-        elif user.role == 'student':
+
+        if user.role == "admin":
+            company_id = self.request.query_params.get("company_id")
+            if company_id:
+                base = base.filter(company_id=company_id)
+            return base
+        if user.role == "student":
             return base.filter(student=user)
-        elif user.role == 'workplace_supervisor':
+        if user.role == "workplace_supervisor":
             return base.filter(workplace_supervisor=user)
-        elif user.role == 'academic_supervisor':
+        if user.role == "academic_supervisor":
             return base.filter(academic_supervisor=user)
-        else:
-            return InternshipPlacement.objects.none()
-    
+        return InternshipPlacement.objects.none()
+
     def perform_create(self, serializer):
-        user = self.request.user
-        if user.role != 'admin':#only admins can create placements
+        if self.request.user.role != "admin":
             raise PermissionDenied("Only admins can create placements.")
+
+        placement = serializer.save()
+        if placement.status == "PENDING" and placement.start_date <= placement.end_date:
+            from django.utils import timezone
+
+            today = timezone.localdate()
+            if placement.start_date <= today <= placement.end_date:
+                placement.status = "ACTIVE"
+                placement.save(update_fields=["status"])
+
+    def perform_update(self, serializer):
+        if self.request.user.role != "admin":
+            raise PermissionDenied("Only admins can update placements.")
         serializer.save()
-        
+
+    def destroy(self, request, *args, **kwargs):
+        raise PermissionDenied("Placements should be cancelled instead of deleted.")
+
+    def create(self, request, *args, **kwargs):
+        if request.user.role != "admin":
+            raise PermissionDenied("Only admins can create placements.")
+        return super().create(request, *args, **kwargs)
+
+    def update(self, request, *args, **kwargs):
+        if request.user.role != "admin":
+            raise PermissionDenied("Only admins can update placements.")
+        return super().update(request, *args, **kwargs)
+
+    def partial_update(self, request, *args, **kwargs):
+        if request.user.role != "admin":
+            raise PermissionDenied("Only admins can update placements.")
+        return super().partial_update(request, *args, **kwargs)
+
+    @action(detail=False, methods=["get"], permission_classes=[permissions.IsAuthenticated])
+    def companies(self, request):
+        queryset = Company.objects.annotate(
+            supervisor_count=Count(
+                "users", filter=Q(users__role="workplace_supervisor")
+            )
+        ).order_by("name")
+        serializer = CompanySerializer(queryset, many=True)
+        return Response(serializer.data)
+
+    @action(detail=False, methods=["get"], permission_classes=[permissions.IsAuthenticated])
+    def placement_options(self, request):
+        if request.user.role != "admin":
+            raise PermissionDenied("Only admins can access placement options.")
+
+        company_id = request.query_params.get("company_id")
+        students = CustomUser.objects.filter(role="student", is_active=True).order_by(
+            "first_name", "last_name", "email"
+        )
+        academics = CustomUser.objects.filter(
+            role="academic_supervisor", is_active=True
+        ).order_by("first_name", "last_name", "email")
+        supervisors = CustomUser.objects.filter(
+            role="workplace_supervisor", is_active=True
+        ).select_related("company")
+
+        if company_id:
+            supervisors = supervisors.filter(company_id=company_id)
+        else:
+            supervisors = supervisors.order_by("first_name", "last_name", "email")
+
+        return Response(
+            {
+                "students": CustomUserSerializer(students, many=True).data,
+                "academic_supervisors": CustomUserSerializer(academics, many=True).data,
+                "workplace_supervisors": CustomUserSerializer(supervisors, many=True).data,
+                "companies": CompanySerializer(
+                    Company.objects.annotate(
+                        supervisor_count=Count(
+                            "users", filter=Q(users__role="workplace_supervisor")
+                        )
+                    ).order_by("name"),
+                    many=True,
+                ).data,
+            }
+        )
+
+    @action(detail=True, methods=["post"], permission_classes=[permissions.IsAuthenticated])
+    def cancel(self, request, pk=None):
+        if request.user.role != "admin":
+            raise PermissionDenied("Only admins can cancel placements.")
+
+        placement = self.get_object()
+        confirmed = request.data.get("confirm")
+        if confirmed not in [True, "true", "True", 1, "1"]:
+            raise ValidationError(
+                {"confirm": "Set confirm=true to cancel this placement."}
+            )
+
+        if placement.status == "CANCELLED":
+            raise ValidationError({"detail": "This placement is already cancelled."})
+
+        WeeklyLog.objects.filter(placement=placement).delete()
+        placement.status = "CANCELLED"
+        placement.save(update_fields=["status"])
+
+        serializer = self.get_serializer(placement)
+        return Response(
+            {
+                "message": "Placement cancelled successfully.",
+                "placement": serializer.data,
+            },
+            status=status.HTTP_200_OK,
+        )
+
     def retrieve(self, request, *args, **kwargs):
-        #fetch the specific placement instance being requested
         instance = self.get_object()
         user = request.user
-           
-        #check if the user has permission to view this placement
-        if user.role == 'student' and instance.student != user:
+
+        if user.role == "student" and instance.student != user:
             raise PermissionDenied("You can only view your own placements.")
-        elif user.role == 'workplace_supervisor' and instance.workplace_supervisor != user:
+        if user.role == "workplace_supervisor" and instance.workplace_supervisor != user:
             raise PermissionDenied("You can only view placements you supervise.")
-        elif user.role == 'academic_supervisor' and instance.academic_supervisor != user:
+        if user.role == "academic_supervisor" and instance.academic_supervisor != user:
             raise PermissionDenied("You can only view placements you supervise.")
         return super().retrieve(request, *args, **kwargs)
-           
-

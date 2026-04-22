@@ -1,52 +1,135 @@
-# placements/serializers.py
-
-from tracemalloc import start
-
 from rest_framework import serializers
-from .models import InternshipPlacement
+
+from users.models import CustomUser
 from users.serializers import CustomUserSerializer
 
+from .models import Company, InternshipPlacement
+
+
+class CompanySerializer(serializers.ModelSerializer):
+    supervisor_count = serializers.IntegerField(read_only=True)
+
+    class Meta:
+        model = Company
+        fields = ["id", "name", "supervisor_count"]
+
+
 class PlacementSerializer(serializers.ModelSerializer):
-    # Nested read-only: shows full user object instead of just an ID
     student = CustomUserSerializer(read_only=True)
     workplace_supervisor = CustomUserSerializer(read_only=True)
+    academic_supervisor = CustomUserSerializer(read_only=True)
+    company = CompanySerializer(read_only=True)
 
-    # Write-only fields to accept IDs when creating/updating
     student_id = serializers.PrimaryKeyRelatedField(
-        queryset=InternshipPlacement.student.field.related_model.objects.all(),
-        source='student',
-        write_only=True
+        queryset=CustomUser.objects.filter(role="student"),
+        source="student",
+        write_only=True,
     )
     workplace_supervisor_id = serializers.PrimaryKeyRelatedField(
-        queryset=InternshipPlacement.workplace_supervisor.field.related_model.objects.all(),
-        source='workplace_supervisor',
-        write_only=True
+        queryset=CustomUser.objects.filter(role="workplace_supervisor").select_related("company"),
+        source="workplace_supervisor",
+        write_only=True,
+    )
+    academic_supervisor_id = serializers.PrimaryKeyRelatedField(
+        queryset=CustomUser.objects.filter(role="academic_supervisor"),
+        source="academic_supervisor",
+        write_only=True,
+        required=False,
+        allow_null=True,
+    )
+    company_id = serializers.PrimaryKeyRelatedField(
+        queryset=Company.objects.all(),
+        source="company",
+        write_only=True,
+        required=False,
+        allow_null=True,
     )
 
     class Meta:
         model = InternshipPlacement
         fields = [
-            'id',
-            'student',
-            'student_id',
-            'workplace_supervisor',
-            'workplace_supervisor_id',
-            'company_name',
-            'start_date',
-            'end_date',
-            'status',
+            "id",
+            "student",
+            "student_id",
+            "workplace_supervisor",
+            "workplace_supervisor_id",
+            "academic_supervisor",
+            "academic_supervisor_id",
+            "company",
+            "company_id",
+            "company_name",
+            "start_date",
+            "end_date",
+            "status",
         ]
+        extra_kwargs = {
+            "company_name": {"required": False, "allow_blank": True},
+        }
+    def validate(self, attrs):
+        instance = getattr(self, "instance", None)
+        student = attrs.get("student", getattr(instance, "student", None))
+        supervisor = attrs.get(
+            "workplace_supervisor",
+            getattr(instance, "workplace_supervisor", None),
+        )
+        company = attrs.get("company", getattr(instance, "company", None))
+        company_name = attrs.get("company_name", getattr(instance, "company_name", "")).strip()
+        start_date = attrs.get("start_date", getattr(instance, "start_date", None))
+        end_date = attrs.get("end_date", getattr(instance, "end_date", None))
+        status = attrs.get("status", getattr(instance, "status", "PENDING"))
 
-    def validate(self, data):
-        """
-        Check that end_date is after start_date.
-        Object-level validation: sees all fields together.
-        """
-        start_date = data.get('start_date')
-        end_date = data.get('end_date')
+        if start_date and end_date and start_date >= end_date:
+            raise serializers.ValidationError("End date must be after start date.")
 
-        if start_date is not None and end_date is not None:
-            if start_date >= end_date:
-                raise serializers.ValidationError("End date must be after start date")
-        
-        return data
+        if not company and not company_name:
+            raise serializers.ValidationError(
+                {"company_id": "Company is required.", "company_name": "Company is required."}
+            )
+
+        if not company and company_name:
+            company, _ = Company.objects.get_or_create(name=company_name)
+            attrs["company"] = company
+
+        if supervisor and supervisor.company_id != company.id:
+            raise serializers.ValidationError(
+                {
+                    "workplace_supervisor_id": (
+                        "Selected workplace supervisor is not assigned to that company."
+                    )
+                }
+            )
+
+        if student:
+            existing = InternshipPlacement.objects.filter(
+                student=student,
+                status__in=["ACTIVE", "COMPLETED"],
+            )
+            if instance:
+                existing = existing.exclude(pk=instance.pk)
+            if existing.exists():
+                raise serializers.ValidationError(
+                    {
+                        "student_id": (
+                            "This student already has an active or completed placement."
+                        )
+                    }
+                )
+
+        if status == "CANCELLED":
+            raise serializers.ValidationError(
+                {"status": "Use the cancel endpoint to cancel a placement."}
+            )
+
+        return attrs
+
+    def create(self, validated_data):
+        company = validated_data.get("company")
+        if company:
+            validated_data["company_name"] = company.name
+        return super().create(validated_data)
+
+    def update(self, instance, validated_data):
+        company = validated_data.get("company", instance.company)
+        if company:
+            validated_data["company_name"] = company.name
+        return super().update(instance, validated_data)

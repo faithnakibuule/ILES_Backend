@@ -1,7 +1,13 @@
 from django.shortcuts import render
 from rest_framework import generics, permissions
 from rest_framework_simplejwt.views import TokenObtainPairView
-from .serializers import CustomUserSerializer, RegisterSerializer,UserUpdateSerializer, CustomTokenObtainPairSerializer
+from .serializers import (
+    AdminUserSerializer,
+    CustomTokenObtainPairSerializer,
+    CustomUserSerializer,
+    RegisterSerializer,
+    UserUpdateSerializer,
+)
 from .models import CustomUser
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import filters
@@ -61,17 +67,24 @@ class AdminUserViewSet(viewsets.ModelViewSet):
     creating users, and deactivating users.
     """
     queryset = CustomUser.objects.all().order_by('date_joined')
-    serializer_class = CustomUserSerializer
+    serializer_class = AdminUserSerializer
     permission_classes = [permissions.IsAuthenticated,IsAdminUser]
     
     # What fields can be filtered with ?role=student
-    filterset_fields = ['role','is_active']
+    filterset_fields = ['role','is_active', 'company']
     
     # What fields does ?search= look through
     search_fields = ['first_name','last_name','email']
     
     # What fields can be sorted with ?ordering=email
     ordering_fields = ['date_joined', 'first_name', 'last_name', 'email']
+
+    def get_queryset(self):
+        queryset = super().get_queryset().select_related("company")
+        company_id = self.request.query_params.get("company_id")
+        if company_id:
+            queryset = queryset.filter(company_id=company_id)
+        return queryset
     
     @action(detail=True, methods=['patch']) 
     def deactivate(self,request,pk=None):
