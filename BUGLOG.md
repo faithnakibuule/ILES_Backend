@@ -1,7 +1,7 @@
 # ILES Bug Log — Week 5 Testing
 **Module:** M4 — Review Workflow  
-**Author:** [Your Name]  
-**Date:** Week 5, Monday & Tuesday  
+**Author:** Sserunkuuma Joshua  
+**Date:** Week 5, Monday  
 
 ---
 

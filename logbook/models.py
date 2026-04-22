@@ -7,6 +7,7 @@ from placements.models import InternshipPlacement
 class WeeklyLog(models.Model):
     STATUS_CHOICES =[
         ('DRAFT', 'Draft'),
+        ('MISSED', 'Missed'),
         ('SUBMITTED', 'Submitted'),
         ('REVIEWED', 'Reviewed'),
         ('APPROVED', 'Approved'),
@@ -23,8 +24,8 @@ class WeeklyLog(models.Model):
                     related_name='weekly_logs'                 
                                 )
     week_number = models.PositiveIntegerField()
-    activities =models.TextField()
-    learning_points = models.TextField()
+    activities =models.TextField(blank=True, default='')
+    learning_points = models.TextField(blank=True, default='')
     status = models.CharField(
                 max_length=20,
                 choices=STATUS_CHOICES,
@@ -48,12 +49,14 @@ class WeeklyLog(models.Model):
         start = self.placement.start_date
         if isinstance(start, str):
             start = date.fromisoformat(start)
-        deadline = start + timedelta(days = 7 * self.week_number)
+        deadline = start + timedelta(days=(7 * self.week_number) - 1)
+        if self.status == 'MISSED':
+            return True
         if not self.submitted_at:
             return timezone.now().date() > deadline
         return self.submitted_at.date() > deadline
     class Meta:
-        unique_together = [['intern', 'week_number']]
+        unique_together = [['intern', 'placement', 'week_number']]
     
     def __str__(self):
         return f"Week {self.week_number} - {self.intern.email}"

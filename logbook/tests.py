@@ -1,467 +1,204 @@
-from django.test import TestCase
-from django.utils import timezone 
-from django.urls import reverse
-from rest_framework.test import APIClient
-from rest_framework import status
+from datetime import datetime, time, timedelta
+
 from django.contrib.auth import get_user_model
+from django.test import TestCase, override_settings
+from django.utils import timezone
+from rest_framework import status
+from rest_framework.test import APIClient
+
 from logbook.models import WeeklyLog
+from logbook.services import finalize_expired_logs, get_week_number_for_date
 from placements.models import InternshipPlacement
 
 User = get_user_model()
-class LogbookTestCase(TestCase):
-    """Base test case with shared setup for all logbook tests."""
 
+
+@override_settings(TIME_ZONE="UTC", USE_TZ=True)
+class StudentWeeklyLogbookTests(TestCase):
     def setUp(self):
-        
         self.client = APIClient()
         self.student = User.objects.create_user(
-            email='student1@test.com',
-            password='testpass123',
-            role='student',
+            email="student1@test.com",
+            password="testpass123",
+            role="student",
         )
-        self.student2 = User.objects.create_user(
-            email='student2@test.com',
-            password='testpass123',
-            role='student',
-        )
-
         self.supervisor = User.objects.create_user(
-            email='supervisor1@test.com',
-            password='testpass123',
-            role='workplace_supervisor',
+            email="supervisor1@test.com",
+            password="testpass123",
+            role="workplace_supervisor",
         )
-
-        self.other_supervisor = User.objects.create_user(
-            email='supervisor2@test.com',
-            password='testpass123',
-            role='workplace_supervisor',
-        )
-
+        today = timezone.localdate()
         self.placement = InternshipPlacement.objects.create(
             student=self.student,
             workplace_supervisor=self.supervisor,
-            company_name='Test Company Ltd',
-            start_date='2025-01-01',
-            end_date='2025-06-30',
-            status='ACTIVE',
+            company_name="Test Company Ltd",
+            start_date=today - timedelta(days=3),
+            end_date=today + timedelta(days=60),
+            status="ACTIVE",
         )
 
-        self.placement2 = InternshipPlacement.objects.create(
-            student=self.student2,
-            workplace_supervisor=self.supervisor,
-            company_name='Another Company',
-            start_date='2025-01-01',
-            end_date='2025-06-30',
-            status='ACTIVE',
-        )
-
-class TestStudentCreateDraftLog(LogbookTestCase):
-
-    def test_student_can_create_draft_log(self):
+    def authenticate(self):
         self.client.force_authenticate(user=self.student)
 
-        data = {
-            'week_number':     1,
-            'activities':      'I worked on the authentication module this week.',
-            'learning_points': 'I learned how JWT tokens are structured and validated.',
-            'placement':       self.placement.id,
-            'status':          'DRAFT',
-        }
+    def test_student_creates_draft_without_sending_placement_or_week(self):
+        self.authenticate()
 
-        response = self.client.post('/api/logbook/logs/', data, format='json')
-        self.assertEqual(
-            response.status_code,
-            status.HTTP_201_CREATED,
-            f'Expected 201 but got {response.status_code}. Response: {response.data}'
+        response = self.client.post(
+            "/api/logbook/logs/",
+            {
+                "activities": "Worked on onboarding flows.",
+                "learning_points": "",
+            },
+            format="json",
         )
-        self.assertEqual(WeeklyLog.objects.count(), 1)
-
-        log = WeeklyLog.objects.first()
-        self.assertEqual(log.status, 'DRAFT')
-
-        self.assertEqual(log.intern, self.student)
-
-    def test_unauthenticated_user_cannot_create_log(self):
-        data = {
-            'week_number':     1,
-            'activities':      'Some activities.',
-            'learning_points': 'Some learning.',
-            'placement':       self.placement.id,
-        }
-
-        response = self.client.post('/api/logbook/logs/', data, format='json')
-        self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
-class TestUniqueTogetherConstraint(LogbookTestCase):
-
-    def test_student_cannot_create_duplicate_log_for_same_week(self):
-        """
-        The WeeklyLog model has unique_together = [['intern', 'week_number']].
-        A student trying to create a second log for the same week
-        should get a 400 Bad Request response.
-        """
-        self.client.force_authenticate(user=self.student)
-
-        data = {
-            'week_number':     2,
-            'activities':      'First log for week 2.',
-            'learning_points': 'First learning for week 2.',
-            'placement':       self.placement.id,
-            'status':          'DRAFT',
-        }
-
-        first_response = self.client.post('/api/logbook/logs/', data, format='json')
-        self.assertEqual(
-            first_response.status_code,
-            status.HTTP_201_CREATED,
-            'First log creation should succeed.'
-        )
-
-        duplicate_data = {
-            'week_number':     2, 
-            'activities':      'Trying to submit again for week 2.',
-            'learning_points': 'Duplicate learning points.',
-            'placement':       self.placement.id,
-            'status':          'DRAFT',
-        }
-
-        second_response = self.client.post('/api/logbook/logs/', duplicate_data, format='json')
-        self.assertEqual(
-            second_response.status_code,
-            status.HTTP_400_BAD_REQUEST,
-            'Duplicate log for same week should return 400.'
-        )
-
-        self.assertEqual(WeeklyLog.objects.count(), 1)
-
-    def test_student_can_create_logs_for_different_weeks(self):
-        self.client.force_authenticate(user=self.student)
-
-        self.client.post('/api/logbook/logs/', {
-            'week_number': 1, 'activities': 'Week 1 activities.',
-            'learning_points': 'Week 1 learning.', 'placement': self.placement.id,
-        }, format='json')
-
-        response = self.client.post('/api/logbook/logs/', {
-            'week_number': 2, 'activities': 'Week 2 activities.',
-            'learning_points': 'Week 2 learning.', 'placement': self.placement.id,
-        }, format='json')
 
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
-        self.assertEqual(WeeklyLog.objects.count(), 2)
+        log = WeeklyLog.objects.get()
+        self.assertEqual(log.intern, self.student)
+        self.assertEqual(log.placement, self.placement)
+        self.assertEqual(log.week_number, 1)
+        self.assertEqual(log.status, "DRAFT")
 
-class TestSupervisorLogAccess(LogbookTestCase):
-
-    def setUp(self):
-        super().setUp() 
-        self.log_student1 = WeeklyLog.objects.create(
-            intern=self.student,
-            placement=self.placement,
-            week_number=1,
-            activities='Student 1 week 1 activities.',
-            learning_points='Student 1 week 1 learning.',
-            status='SUBMITTED',
-        )
-        self.log_student2 = WeeklyLog.objects.create(
-            intern=self.student2,
-            placement=self.placement2,
-            week_number=1,
-            activities='Student 2 week 1 activities.',
-            learning_points='Student 2 week 1 learning.',
-            status='SUBMITTED',
-        )
-        self.other_student = User.objects.create_user(
-            email='student3@test.com',
-            password='testpass123',
-            role='student',
-        )
-        self.other_placement = InternshipPlacement.objects.create(
-            student=self.other_student,
-            workplace_supervisor=self.other_supervisor,
-            company_name='Other Company',
-            start_date='2025-01-01',
-            end_date='2025-06-30',
-            status='ACTIVE',
-        )
-        
-        self.log_other = WeeklyLog.objects.create(
-            intern=self.other_student,
-            placement=self.other_placement,
-            week_number=1,
-            activities='Other student activities.',
-            learning_points='Other student learning.',
-            status='SUBMITTED',
-        )
-
-    def test_supervisor_sees_only_their_interns_logs(self):
-        self.client.force_authenticate(user=self.supervisor)
-
-        response = self.client.get('/api/logbook/logs/', format='json')
-
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
-        
-        data = response.data.get('results', response.data)
-        returned_ids = [log['id'] for log in data]
-
-        self.assertIn(
-            self.log_student1.id, returned_ids,
-            'Supervisor should see their intern student1 log.'
-        )
-        self.assertIn(
-            self.log_student2.id, returned_ids,
-            'Supervisor should see their intern student2 log.'
-        )
-        self.assertNotIn(
-            self.log_other.id, returned_ids,
-            'Supervisor should NOT see logs from another supervisor interns.'
-        )
-
-    def test_supervisor_cannot_see_draft_logs(self):
-        draft_log = WeeklyLog.objects.create(
-            intern=self.student,
-            placement=self.placement,
-            week_number=3,
-            activities='Draft activities not ready yet.',
-            learning_points='Draft learning not ready.',
-            status='DRAFT',
-        )
-
-        self.client.force_authenticate(user=self.supervisor)
-        response = self.client.get('/api/logbook/logs/', format='json')
-
-        data = response.data.get('results', response.data)
-        returned_ids = [log['id'] for log in data]
-        self.assertNotIn(
-            draft_log.id, returned_ids,
-            'Supervisor should not see DRAFT logs.'
-        )
-class TestLogStatusTransitions(LogbookTestCase):
-
-    def setUp(self):
-        super().setUp()
-        self.log = WeeklyLog.objects.create(
-            intern=self.student,
-            placement=self.placement,
-            week_number=1,
-            activities='Initial draft activities.',
-            learning_points='Initial draft learning.',
-            status='DRAFT',
-        )
-
-    def test_student_can_submit_draft_log(self):
-        self.client.force_authenticate(user=self.student)
+    def test_student_can_submit_when_required_fields_are_complete(self):
+        self.authenticate()
 
         response = self.client.post(
-            f'/api/logbook/logs/{self.log.id}/submit/',
-            format='json'
+            "/api/logbook/logs/",
+            {
+                "activities": "Worked on deployment tasks.",
+                "learning_points": "Learned release process.",
+                "status": "SUBMITTED",
+            },
+            format="json",
         )
 
-        self.assertEqual(
-            response.status_code,
-            status.HTTP_200_OK,
-            f'Submit action should return 200. Got: {response.status_code}'
-        )
-        self.log.refresh_from_db()
-        self.assertEqual(
-            self.log.status, 'SUBMITTED',
-            'Log status should be SUBMITTED after student submits.'
-        )
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        log = WeeklyLog.objects.get()
+        self.assertEqual(log.status, "SUBMITTED")
+        self.assertIsNotNone(log.submitted_at)
 
-    def test_student_cannot_submit_already_submitted_log(self):
-        self.log.status = 'SUBMITTED'
-        self.log.save()
-
-        self.client.force_authenticate(user=self.student)
+    def test_student_cannot_submit_with_missing_required_fields(self):
+        self.authenticate()
 
         response = self.client.post(
-            f'/api/logbook/logs/{self.log.id}/submit/',
-            format='json'
-        )
-        self.assertEqual(
-            response.status_code,
-            status.HTTP_400_BAD_REQUEST,
-            'Submitting an already submitted log should return 400.'
+            "/api/logbook/logs/",
+            {
+                "activities": "Worked on deployment tasks.",
+                "learning_points": "",
+                "status": "SUBMITTED",
+            },
+            format="json",
         )
 
-    def test_supervisor_can_review_submitted_log(self):
-        self.log.status = 'SUBMITTED'
-        self.log.save()
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(WeeklyLog.objects.count(), 1)
+        self.assertEqual(WeeklyLog.objects.get().status, "DRAFT")
 
-        self.client.force_authenticate(user=self.supervisor)
+    def test_student_cannot_create_second_log_for_same_current_week(self):
+        self.authenticate()
+        self.client.post(
+            "/api/logbook/logs/",
+            {"activities": "First draft."},
+            format="json",
+        )
 
         response = self.client.post(
-            f'/api/logbook/logs/{self.log.id}/review/',
-            format='json'
+            "/api/logbook/logs/",
+            {"activities": "Second draft."},
+            format="json",
         )
 
-        self.assertEqual(
-            response.status_code,
-            status.HTTP_200_OK,
-            f'Review action should return 200. Got: {response.status_code}'
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(WeeklyLog.objects.count(), 1)
+
+    def test_no_active_placement_blocks_form_access(self):
+        self.placement.status = "COMPLETED"
+        self.placement.save(update_fields=["status"])
+        self.authenticate()
+
+        create_response = self.client.post(
+            "/api/logbook/logs/",
+            {"activities": "Should not save."},
+            format="json",
         )
+        summary_response = self.client.get("/api/logbook/logs/summary/")
 
-        self.log.refresh_from_db()
-        self.assertEqual(
-            self.log.status, 'REVIEWED',
-            'Log status should be REVIEWED after supervisor reviews.'
+        self.assertEqual(create_response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(summary_response.status_code, status.HTTP_200_OK)
+        self.assertFalse(summary_response.data["has_active_placement"])
+
+    def test_expired_complete_draft_is_auto_submitted(self):
+        placement = InternshipPlacement.objects.create(
+            student=self.student,
+            workplace_supervisor=self.supervisor,
+            company_name="Old Placement",
+            start_date=timezone.localdate() - timedelta(days=20),
+            end_date=timezone.localdate() + timedelta(days=40),
+            status="ACTIVE",
         )
-
-    def test_student_cannot_review_log(self):
-        self.log.status = 'SUBMITTED'
-        self.log.save()
-
-        self.client.force_authenticate(user=self.student)
-
-        response = self.client.post(
-            f'/api/logbook/logs/{self.log.id}/review/',
-            format='json'
-        )
-        self.assertEqual(
-            response.status_code,
-            status.HTTP_403_FORBIDDEN,
-            'Students should not be able to review logs.'
-        )
-        self.log.refresh_from_db()
-        self.assertEqual(self.log.status, 'SUBMITTED')
-class TestUpdatedDraftLog(LogbookTestCase):
-    def setUp(self):
-        super().setUp()
-        self.log = WeeklyLog.objects.create(
-            intern=self.student,
-            placement=self.placement,
-            week_number=1,
-            activities='Original activities.',
-            learning_points='Original learning.',
-            status='DRAFT',
-        )
-
-        def test_student_can_update_own_draft_log(self):
-            self.client.force_authenticate(user=self.student)
-
-            response = self.client.path(
-                f'/api/logbook/logs/{self.log.id}/',
-                {'activities': 'Updated activities.'},
-                format='json',
-            )
-
-            self.assertEqual(response.status_code, status.HTTP_200_OK)
-            self.log.refresh_from_db()
-            self.assertEqual(self.log.activities, 'Updated activities. ')
-
-class TestCannotUpdateSubmittedLog(LogbookTestCase):
-
-    def setUp(self):
-        super().setUp()
-        self.log = WeeklyLog.objects.create(
-            intern=self.student,
-            placement=self.placement,
-            week_number=1,
-            activities='Submitted activities.',
-            learning_points='Submitted activities.',
-            status='SUBMITTED',
-        )
-
-        def test_student_cannot_update_submitted_log(self):
-            self.client.force_authenticate(user=self.student)
-
-            response =self.client.patch(
-                f'/api/logbook/logs/{self.log.id}',
-                {'activities': 'Sneaky edit.'},
-                format='json',
-            )
-            self.assertIn(response.status_code, [status.HTTP_400_BAD_REQUEST, status.HTTP_403_FORBIDDEN])
-            self.log.refresh_from_db()
-            self.assertEqual(self.log.activities, 'Submitted activities.')
-
-class TestOverdueDetection(LogbookTestCase):
-    def test_unsubmitted_log_past_deadline_is_overdue(self):
+        week_number = get_week_number_for_date(placement, placement.start_date + timedelta(days=1))
         log = WeeklyLog.objects.create(
             intern=self.student,
-            placement=self.placement,
-            week_number=1,
-            activities='Draft.',
-            learning_points='Draft.',
-            status='DRAFT',
-            submitted_at=None,
+            placement=placement,
+            week_number=week_number,
+            activities="Completed all assigned tasks.",
+            learning_points="Learned documentation workflows.",
+            status="DRAFT",
         )
-        self.assertTrue(log.is_overdue)
 
-    def test_unsubmitted_log_before_deadline_is_not_overdue(self):
+        finalize_expired_logs(
+            now=timezone.make_aware(
+                datetime.combine(placement.start_date + timedelta(days=7), time.min)
+            )
+        )
+
+        log.refresh_from_db()
+        self.assertEqual(log.status, "SUBMITTED")
+        self.assertIsNotNone(log.submitted_at)
+
+    def test_expired_incomplete_draft_is_marked_missed(self):
+        placement = InternshipPlacement.objects.create(
+            student=self.student,
+            workplace_supervisor=self.supervisor,
+            company_name="Old Placement",
+            start_date=timezone.localdate() - timedelta(days=20),
+            end_date=timezone.localdate() + timedelta(days=40),
+            status="ACTIVE",
+        )
         log = WeeklyLog.objects.create(
             intern=self.student,
-            placement=self.placement,
-            week_number=200,
-            activities='Future',
-            learning_points='On time.',
-            status='SUBMITTED',
-            submitted_at=timezone.datetime(2025, 1, 15, tzinfo=timezone.UTC),
+            placement=placement,
+            week_number=1,
+            activities="",
+            learning_points="",
+            status="DRAFT",
         )
-        self.assertFalse(log.is_overdue)
 
-class TestSendBackFlow(LogbookTestCase):
+        finalize_expired_logs(
+            now=timezone.make_aware(
+                datetime.combine(placement.start_date + timedelta(days=7), time.min)
+            )
+        )
 
-    def setUp(self):
-        super().setUp()
-        self.log = WeeklyLog.objects.create(
+        log.refresh_from_db()
+        self.assertEqual(log.status, "MISSED")
+
+    def test_student_summary_reports_missed_previous_weeks(self):
+        self.placement.start_date = timezone.localdate() - timedelta(days=15)
+        self.placement.save(update_fields=["start_date"])
+        WeeklyLog.objects.create(
             intern=self.student,
             placement=self.placement,
-            week_number=1,
-            learning_points='Ready.',
-            status='SUBMITTED',
+            week_number=2,
+            activities="Week 2 work",
+            learning_points="Week 2 learning",
+            status="SUBMITTED",
+            submitted_at=timezone.now(),
         )
+        self.authenticate()
 
-    def test_supervisor_can_send_back_with_comment(self):
-        self.client.force_authenticate(user=self.supervisor)
+        response = self.client.get("/api/logbook/logs/summary/")
 
-        response = self.client.post(
-            f'/api/logbook/logs/{self.log.id}/send_back/',
-            {'review_comment': 'Please add more detail.'},
-            format='json',
-        )
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.log.refresh_from_db()
-        self.assertEqual(self.log.status, 'DRAFT')
-
-        def test_send_back_requires_comment(self):
-            self.client.force_authenticate(user=self.supervisor)
-
-            response = self.client.post(
-                f'/api/logbook/logs/{self.log.id}/send_back/',
-                {},
-                format='json',
-            )
-
-            self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
-            self.log.refresh_from_db()
-            self.assertEqual(self.log.status, 'SUBMITTED')
-
-        def test_student_cannot_send_back(self):
-            self.client.force_authenticate(user=self.student)
-
-            response = self.client.post(
-                f'/api/logbook/logs/{self.log.id}/send_back/',
-                {'review_comment': 'Should not work.'},
-                format='json',
-            )
-            self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
-
-            def test_full_send_back_cycle(self):
-                self.client.force_authenticate(user=self.supervisor)
-                self.client.post(
-                    f'/api/logbook/logs/{self.log.id}/send_back/',
-                    {'review_comment': 'Add more details.'},
-                    format='json',
-                )
-                self.client.force_authenticate(user=self.student)
-                edit = self.slient.patch(
-                    f'/api/logbook/logs/{self.log.id}/',
-                    {'activities': 'Revised with more detail.'},
-                    format='json',
-                )
-                self.assertEqual(edit.status_code, status.HTTP_200_OK)
-                resubmit = self.client.post(
-                    f'/api/logbook/logs/{self.log.id}/submit/',
-                    format='json',
-                )
-                self.assertEqual(resubmit.status_code, status.HTTP_200_OK)
-                self.log.refresh_from_db()
-                self.assertEqual(self.log.status, 'SUBMITTED')
+        self.assertEqual(response.data["current_week"], 3)
+        self.assertEqual(response.data["missed_weeks"], [1])

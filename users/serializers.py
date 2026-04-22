@@ -3,19 +3,29 @@ from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 from django.contrib.auth import get_user_model
 from .models import CustomUser
 from reviews.models import Notification
+from placements.models import Company
 
 User = get_user_model()
 
 #shows user data
 class CustomUserSerializer(serializers.ModelSerializer):
     fullname = serializers.SerializerMethodField()
+    company = serializers.SerializerMethodField()
     
     def get_fullname(self,obj):
         return f"{obj.first_name} {obj.last_name}".strip()
+
+    def get_company(self, obj):
+        if not obj.company_id:
+            return None
+        return {
+            "id": obj.company_id,
+            "name": obj.company.name,
+        }
     
     class Meta:
         model = CustomUser
-        fields = ['id','email','role','fullname', 'phone']
+        fields = ['id','email','role','fullname', 'phone', 'company', 'is_active']
  
  #validates and creates a new user       
 class RegisterSerializer(serializers.ModelSerializer):
@@ -73,6 +83,77 @@ class UserUpdateSerializer(serializers.ModelSerializer):
 
         instance.save()
         return instance
+
+
+class AdminUserSerializer(serializers.ModelSerializer):
+    company_id = serializers.PrimaryKeyRelatedField(
+        queryset=Company.objects.all(),
+        source="company",
+        write_only=True,
+        required=False,
+        allow_null=True,
+    )
+    company = serializers.SerializerMethodField()
+    fullname = serializers.SerializerMethodField()
+    password = serializers.CharField(write_only=True, required=False, allow_blank=False)
+
+    class Meta:
+        model = CustomUser
+        fields = [
+            "id",
+            "email",
+            "first_name",
+            "last_name",
+            "fullname",
+            "role",
+            "phone",
+            "is_active",
+            "company",
+            "company_id",
+            "password",
+            "date_joined",
+        ]
+        read_only_fields = ["id", "fullname", "company", "date_joined"]
+
+    def get_fullname(self, obj):
+        return f"{obj.first_name} {obj.last_name}".strip()
+
+    def get_company(self, obj):
+        if not obj.company_id:
+            return None
+        return {
+            "id": obj.company_id,
+            "name": obj.company.name,
+        }
+
+    def validate(self, attrs):
+        role = attrs.get("role", getattr(self.instance, "role", None))
+        company = attrs.get("company", getattr(self.instance, "company", None))
+
+        if role == "workplace_supervisor" and not company:
+            raise serializers.ValidationError(
+                {"company_id": "Workplace supervisors must be assigned to a company."}
+            )
+
+        if role != "workplace_supervisor" and "company" in attrs:
+            attrs["company"] = None
+
+        if not self.instance and not attrs.get("password"):
+            raise serializers.ValidationError({"password": "Password is required."})
+
+        return attrs
+
+    def create(self, validated_data):
+        password = validated_data.pop("password")
+        return CustomUser.objects.create_user(password=password, **validated_data)
+
+    def update(self, instance, validated_data):
+        password = validated_data.pop("password", None)
+        user = super().update(instance, validated_data)
+        if password:
+            user.set_password(password)
+            user.save(update_fields=["password"])
+        return user
 
 class CustomTokenObtainPairSerializer(TokenObtainPairSerializer):
     @classmethod

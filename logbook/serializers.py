@@ -1,97 +1,143 @@
 # logbook/serializers.py
 
 from rest_framework import serializers
+
 from .models import WeeklyLog
+from .services import (
+    REQUIRED_LOG_FIELDS,
+    get_active_placement,
+    get_current_week_log,
+    student_can_edit_log,
+)
+
 
 class LogReadSerializer(serializers.ModelSerializer):
-    """ 
-    Used for GET requests — rich display data including
-    intern name and placement company.
-    """
-
-    # These fields cross model boundaries — they navigate
-    # to related models using dot notation in 'source'
-
-    intern_name = serializers.CharField(
-        source='intern.get_full_name',  # calls get_full_name() on the related CustomUser
-        read_only=True
-    )
+    intern_name = serializers.CharField(source="intern.get_full_name", read_only=True)
     placement_company = serializers.CharField(
-        source='placement.company_name',  # reads company_name from InternshipPlacement
-        read_only=True
+        source="placement.company_name",
+        read_only=True,
     )
-    overdue = serializers.BooleanField(source='is_overdue', read_only=True)
-
+    overdue = serializers.BooleanField(source="is_overdue", read_only=True)
     latest_review_comment = serializers.SerializerMethodField()
+    deadline_at = serializers.SerializerMethodField()
+    can_edit = serializers.SerializerMethodField()
+
     def get_latest_review_comment(self, obj):
-        latest = obj.logbook_review_actions.first()
+        latest = obj.review_actions.first()
         if latest:
             return latest.comment
         return None
 
-    class Meta:#Tells DRF which model to serialize and which fields to include
-        model = WeeklyLog
-        fields = [
-            'id',
-            'intern_name',          # from CustomUser (via source)
-            'placement_company',    # from InternshipPlacement (via source)
-            'week_number',
-            'activities',
-            'learning_points',
-            'status',
-            'submitted_at',
-            'overdue',
-            'latest_review_comment',
-        ]
-        read_only_fields = fields   # nothing can be written through this serializer
+    def get_deadline_at(self, obj):
+        from .services import get_week_deadline
 
+        return get_week_deadline(obj.placement, obj.week_number)
 
-class LogWriteSerializer(serializers.ModelSerializer):
-    """
-    Used for POST/PATCH requests — only the fields
-    the intern is allowed to edit.
-    """
+    def get_can_edit(self, obj):
+        request = self.context.get("request")
+        if not request or request.user.role != "student":
+            return False
+        return student_can_edit_log(obj)
 
-    def validate_week_number(self, value):
-        # DRF automatically calls validate_<field_name> before saving
-        if value < 1 or value > 12:
-            raise serializers.ValidationError(
-                "Week number must be between 1 and 12."
-            )
-        return value  # always return value if valid — or data gets swallowed
     class Meta:
         model = WeeklyLog
         fields = [
-            'week_number',
-            'activities',
-            'learning_points',
-            'placement',
+            "id",
+            "intern_name",
+            "placement",
+            "placement_company",
+            "week_number",
+            "activities",
+            "learning_points",
+            "status",
+            "submitted_at",
+            "deadline_at",
+            "overdue",
+            "can_edit",
+            "latest_review_comment",
         ]
-        # No read_only_fields — this serializer is meant for writing
+        read_only_fields = fields
 
-    def validate(self, data):
-        request = self.context.get('request')
 
-        if self.instance and self.instance.status != 'DRAFT':
-            raise serializers.ValidationError(
-                "You can only edit a log that is in DRAFT status."
-            )
-        
-        if request and not self.instance:
-            if WeeklyLog.objects.filter(
-                intern = request.user,
-                week_number = data.get('week_number')
-            ). exists():
+class LogWriteSerializer(serializers.ModelSerializer):
+    activities = serializers.CharField(required=False, allow_blank=True)
+    learning_points = serializers.CharField(required=False, allow_blank=True)
+
+    class Meta:
+        model = WeeklyLog
+        fields = [
+            "activities",
+            "learning_points",
+        ]
+
+    def validate(self, attrs):
+        request = self.context.get("request")
+        user = getattr(request, "user", None)
+
+        if self.instance:
+            if self.instance.intern != user:
+                raise serializers.ValidationError("You can only edit your own log.")
+            if not student_can_edit_log(self.instance):
                 raise serializers.ValidationError(
-                    {'week_number': f"You already have a log for week {data.get('week_number')}"}
+                    "This week's log is closed and can no longer be edited."
                 )
-        return data
+            return attrs
+
+        if not user or user.role != "student":
+            return attrs
+
+        placement = get_active_placement(user)
+        if not placement:
+            raise serializers.ValidationError("No active placement.")
+
+        _, week_number, current_log = get_current_week_log(user)
+        if current_log:
+            raise serializers.ValidationError(
+                {"week_number": f"You already have a log for week {week_number}."}
+            )
+
+        return attrs
+
+
 class LogReviewSerializer(serializers.Serializer):
-    """
-    used when supervisor sends back a comment
-    """
     review_comment = serializers.CharField(
         required=True,
         allow_blank=False,
-        help_text="Comment from supervisor explaining the review decision."
+        help_text="Comment from supervisor explaining the review decision.",
     )
+
+
+class StudentLogbookSummarySerializer(serializers.Serializer):
+    has_active_placement = serializers.BooleanField()
+    placement = serializers.SerializerMethodField()
+    current_week = serializers.IntegerField(allow_null=True)
+    current_log_id = serializers.IntegerField(allow_null=True)
+    current_week_deadline = serializers.DateTimeField(allow_null=True)
+    missed_weeks = serializers.ListField(child=serializers.IntegerField())
+
+    def get_placement(self, obj):
+        placement = obj.get("placement")
+        if not placement:
+            return None
+
+        return {
+            "id": placement.id,
+            "company_name": placement.company_name,
+            "start_date": placement.start_date,
+            "end_date": placement.end_date,
+            "status": placement.status,
+        }
+
+def validate_required_log_fields(log):
+    missing_fields = [
+        field for field in REQUIRED_LOG_FIELDS if not (getattr(log, field) or "").strip()
+    ]
+    if missing_fields:
+        raise serializers.ValidationError(
+            {
+                "detail": (
+                    "Complete all required fields before submitting a weekly log."
+                ),
+                "missing_fields": missing_fields,
+            }
+        )

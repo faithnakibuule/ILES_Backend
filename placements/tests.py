@@ -2,7 +2,7 @@ from django.test import TestCase
 from rest_framework.test import APIClient
 from rest_framework import status
 from django.contrib.auth import get_user_model
-from placements.models import InternshipPlacement
+from placements.models import Company, InternshipPlacement
 from logbook.models import WeeklyLog
 from reviews.models import Notification
 
@@ -21,8 +21,17 @@ class PlacementPermissionTests(TestCase):
         self.student2 = User.objects.create_user(
             email = 'student2@test.com', password = 'studentpass2', role = 'student'
         )
+        self.company = Company.objects.create(name="Test Company")
         self.supervisor = User.objects.create_user(
-            email = 'supervisor@test.com', password = 'supervisorpass', role = 'workplace_supervisor'
+            email = 'supervisor@test.com',
+            password = 'supervisorpass',
+            role = 'workplace_supervisor',
+            company = self.company,
+        )
+        self.academic = User.objects.create_user(
+            email='academic@test.com',
+            password='academicpass',
+            role='academic_supervisor'
         )
 
     def test_student_cannot_create_placement(self):
@@ -30,6 +39,7 @@ class PlacementPermissionTests(TestCase):
         response = self.client.post('/api/placements/', {
             "student_id": self.student.id,
             "workplace_supervisor_id": self.supervisor.id,
+            "company_id": self.company.id,
             "company_name": "Hacker Corp",
             "start_date": "2026-06-01",
             "end_date": "2026-08-31",
@@ -41,7 +51,8 @@ class PlacementPermissionTests(TestCase):
         response = self.client.post('/api/placements/',{
             "student_id": self.student.id,
             "workplace_supervisor_id": self.supervisor.id,
-            "company_name": "Good Corp",
+            "academic_supervisor_id": self.academic.id,
+            "company_id": self.company.id,
             "start_date": "2026-06-01",
             "end_date": "2026-08-31",
             "status": "ACTIVE",
@@ -57,14 +68,14 @@ class PlacementPermissionTests(TestCase):
         else:
             placements = response.data['results']
         for placement in placements:
-            self.assertEqual(placement['student'], self.student.id)
+            self.assertEqual(placement['student']['id'], self.student.id)
 
     def test_date_validation_rejects_invalid_range(self):
         self.client.force_authenticate(user = self.admin)
         response = self.client.post('/api/placements/', {
             "student_id": self.student.id,
             "workplace_supervisor_id": self.supervisor.id,
-            "company_name": "Bad Corp",
+            "company_id": self.company.id,
             "start_date": "2026-08-31",
             "end_date": "2026-06-01",
         })
@@ -76,7 +87,7 @@ class PlacementPermissionTests(TestCase):
             response = self.client.post('/api/placements/',{
                 "student_id": self.student.id,
                 "workplace_supervisor_id": self.supervisor.id,
-                "company_name": "Good Corp",
+                "company_id": self.company.id,
                 "start_date": "2026-06-01",
                 "end_date": "2026-08-31",
                 "status": "ACTIVE",
@@ -88,7 +99,7 @@ class PlacementPermissionTests(TestCase):
         response = self.client.post('/api/placements/', {
             "student_id": self.student.id,
             "workplace_supervisor_id": self.supervisor.id,
-            "company_name": "Hacker Corp",
+            "company_id": self.company.id,
             "start_date": "2026-06-01",
             "end_date": "2026-08-31",
         })
@@ -99,7 +110,7 @@ class PlacementPermissionTests(TestCase):
         response = self.client.post('/api/placements/', {
             # student_id omitted
             "workplace_supervisor_id": self.supervisor.id,
-            "company_name": "NoStudent Corp",
+            "company_id": self.company.id,
             "start_date": "2026-06-01",
             "end_date": "2026-08-31",
         }, format='json')
@@ -111,7 +122,7 @@ class PlacementPermissionTests(TestCase):
         post = self.client.post('/api/placements/', {
             "student_id": self.student.id,
             "workplace_supervisor_id": self.supervisor.id,
-            "company_name": "Status Corp",
+            "company_id": self.company.id,
             "start_date": "2026-01-01",
             "end_date": "2026-06-01",
         }, format='json')
@@ -121,23 +132,68 @@ class PlacementPermissionTests(TestCase):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(response.data['status'], "ACTIVE")
 
-    def test_overlapping_placements_allowed(self):
+    def test_student_cannot_receive_second_active_or_completed_placement(self):
         # Admin creates first placement
         self.client.force_authenticate(user=self.admin)
         self.client.post('/api/placements/', {
             "student_id": self.student.id,
             "workplace_supervisor_id": self.supervisor.id,
-            "company_name": "Overlap Corp 1",
+            "company_id": self.company.id,
             "start_date": "2026-01-01",
             "end_date": "2026-03-01",
+            "status": "ACTIVE",
         }, format='json')
-        # Create overlapping placement (no validation in code, so expect success)
+        second_company = Company.objects.create(name="Second Company")
+        second_supervisor = User.objects.create_user(
+            email='supervisor2@test.com',
+            password='supervisorpass2',
+            role='workplace_supervisor',
+            company=second_company,
+        )
         response = self.client.post('/api/placements/', {
             "student_id": self.student.id,
-            "workplace_supervisor_id": self.supervisor.id,
-            "company_name": "Overlap Corp 2",
+            "workplace_supervisor_id": second_supervisor.id,
+            "company_id": second_company.id,
             "start_date": "2026-02-01",
             "end_date": "2026-04-01",
         }, format='json')
-        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+
+    def test_admin_can_cancel_placement_with_confirmation(self):
+        self.client.force_authenticate(user=self.admin)
+        create_response = self.client.post('/api/placements/', {
+            "student_id": self.student.id,
+            "workplace_supervisor_id": self.supervisor.id,
+            "company_id": self.company.id,
+            "start_date": "2026-01-01",
+            "end_date": "2026-03-01",
+            "status": "ACTIVE",
+        }, format='json')
+        placement_id = create_response.data['id']
+        placement = InternshipPlacement.objects.get(pk=placement_id)
+
+        WeeklyLog.objects.create(
+            intern=self.student,
+            placement=placement,
+            week_number=1,
+            activities='Testing',
+            learning_points='Validation',
+        )
+
+        denied = self.client.post(
+            f'/api/placements/{placement_id}/cancel/',
+            {},
+            format='json',
+        )
+        self.assertEqual(denied.status_code, status.HTTP_400_BAD_REQUEST)
+
+        response = self.client.post(
+            f'/api/placements/{placement_id}/cancel/',
+            {"confirm": True},
+            format='json',
+        )
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        placement.refresh_from_db()
+        self.assertEqual(placement.status, 'CANCELLED')
+        self.assertFalse(WeeklyLog.objects.filter(placement=placement).exists())
  
