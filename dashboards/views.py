@@ -212,7 +212,7 @@ class CohortScoresView(APIView):
             InternshipPlacement.objects
             .filter(academic_supervisor=user)
             .select_related('student')
-            .prefetch_related('student__weeklyLogs__evaluations')
+            .prefetch_related('student__weekly_logs__evaluations')
         )
 
         cohort_data = []
@@ -220,7 +220,7 @@ class CohortScoresView(APIView):
         for placement in placements:
             student = placement.student
 
-            all_logs = student.weeklyLogs.all()
+            all_logs = student.weekly_logs.all()
             total_logs = len(all_logs)
             approved_logs = sum(1 for l in all_logs if l.status == 'APPROVED')
 
