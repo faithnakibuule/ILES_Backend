@@ -31,10 +31,12 @@ class CustomUserSerializer(serializers.ModelSerializer):
 class RegisterSerializer(serializers.ModelSerializer):
     password = serializers.CharField(write_only=True)
     confirm_password = serializers.CharField(write_only=True)
+    first_name = serializers.CharField(required=False, allow_blank=True)
+    last_name = serializers.CharField(required=False, allow_blank=True)
     
     class Meta:
         model = CustomUser
-        fields = ['email','role','password','confirm_password']
+        fields = ['email','role','first_name','last_name','password','confirm_password']
         
     def validate(self, data):
         if data['password'] != data['confirm_password']:
@@ -51,7 +53,9 @@ class RegisterSerializer(serializers.ModelSerializer):
         return CustomUser.objects.create_user(
             email = validated_data['email'],
             password = validated_data['password'],
-            role = validated_data.get('role','student')
+            role = validated_data.get('role','student'),
+            first_name = validated_data.get('first_name', ''),
+            last_name = validated_data.get('last_name', '')
         )            
 
 class UserUpdateSerializer(serializers.ModelSerializer):
