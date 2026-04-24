@@ -20,13 +20,9 @@ from .views import (
 
 urlpatterns = [
     path("student-stats/",   views.student_stats,            name="student-stats"),
-<<<<<<< HEAD
-    path("admin-stats/",DashboardStatsView.as_view(), name="admin-stats"),
-=======
     path("admin-stats/",     DashboardStatsView.as_view(),   name="admin-stats"),
     path("admin-overview/",  AdminDashboardOverviewView.as_view(), name="admin-overview"),
     path("student-overview/", StudentDashboardOverviewView.as_view(), name="student-overview"),
->>>>>>> 3de7a7f75f58e183dbcc7babe772e745180ee8cb
     path("workplace-stats/", WorkplaceStatsView.as_view(),   name="workplace-stats"),
     path("workplace-overview/", WorkplaceDashboardOverviewView.as_view(), name="workplace-overview"),
     path("workplace-interns/<int:placement_id>/", WorkplaceInternDetailView.as_view(), name="workplace-intern-detail"),
