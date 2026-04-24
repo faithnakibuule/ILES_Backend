@@ -1,7 +1,13 @@
 from django.shortcuts import render
 from rest_framework import generics, permissions
 from rest_framework_simplejwt.views import TokenObtainPairView
-from .serializers import CustomUserSerializer, RegisterSerializer,UserUpdateSerializer, CustomTokenObtainPairSerializer
+from .serializers import (
+    AdminUserSerializer,
+    CustomTokenObtainPairSerializer,
+    CustomUserSerializer,
+    RegisterSerializer,
+    UserUpdateSerializer,
+)
 from .models import CustomUser
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import filters
@@ -25,8 +31,14 @@ class RegisterView(generics.CreateAPIView):#This view allows users to register b
     permission_classes = [permissions.AllowAny]
     throttle_classes = [RegisterRateThrottle]
 
-class MeView(generics.RetrieveUpdateAPIView):#This view allows authenticated users to retrieve their own user information.
-    serializer_class = CustomUserSerializer #
+class MeView(generics.RetrieveUpdateAPIView):
+    """
+    GET  /api/auth/me/ — returns current user's profile (CustomUserSerializer)
+    PATCH /api/auth/me/ — updates name/phone (UserUpdateSerializer), 
+                          then returns the updated profile using CustomUserSerializer
+                          so the frontend gets full_name back immediately.
+    """
+    serializer_class = CustomUserSerializer
     permission_classes = [permissions.IsAuthenticated]
     
     def get_serializer_class(self):
@@ -36,6 +48,19 @@ class MeView(generics.RetrieveUpdateAPIView):#This view allows authenticated use
 
     def get_object(self):
         return self.request.user
+
+    def update(self, request, *args, **kwargs):
+        # Run the PATCH using UserUpdateSerializer (validates + saves)
+        partial = kwargs.pop('partial', False)
+        instance = self.get_object()
+        serializer = UserUpdateSerializer(instance, data=request.data, partial=partial)
+        serializer.is_valid(raise_exception=True)
+        updated_user = serializer.save()
+
+        # Return the full profile using CustomUserSerializer so frontend
+        # gets full_name, email, role — not just the write-only fields
+        response_serializer = CustomUserSerializer(updated_user)
+        return Response(response_serializer.data)
     
     
 class CustomTokenObtainPairView(TokenObtainPairView):# It uses the CustomTokenObtainPairSerializer to customize the token generation process
@@ -61,17 +86,24 @@ class AdminUserViewSet(viewsets.ModelViewSet):
     creating users, and deactivating users.
     """
     queryset = CustomUser.objects.all().order_by('date_joined')
-    serializer_class = CustomUserSerializer
+    serializer_class = AdminUserSerializer
     permission_classes = [permissions.IsAuthenticated,IsAdminUser]
     
     # What fields can be filtered with ?role=student
-    filterset_fields = ['role','is_active']
+    filterset_fields = ['role','is_active', 'company']
     
     # What fields does ?search= look through
     search_fields = ['first_name','last_name','email']
     
     # What fields can be sorted with ?ordering=email
     ordering_fields = ['date_joined', 'first_name', 'last_name', 'email']
+
+    def get_queryset(self):
+        queryset = super().get_queryset().select_related("company")
+        company_id = self.request.query_params.get("company_id")
+        if company_id:
+            queryset = queryset.filter(company_id=company_id)
+        return queryset
     
     @action(detail=True, methods=['patch']) 
     def deactivate(self,request,pk=None):
