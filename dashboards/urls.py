@@ -1,4 +1,5 @@
 from django.urls import path
+from .views import DashboardStatsView
 
 from . import views
 from .views import (
@@ -14,7 +15,7 @@ from .views import (
 
 urlpatterns = [
     path("student-stats/",   views.student_stats,            name="student-stats"),
-    path("admin-stats/",     DashboardStatsView.as_view(),   name="admin-stats"),
+    path("admin-stats/",DashboardStatsView.as_view(), name="admin-stats"),
     path("workplace-stats/", WorkplaceStatsView.as_view(),   name="workplace-stats"),
     path("academic-stats/",  AcademicStatsView.as_view(),    name="academic-stats"),
     path("pending-logs/",    PendingLogsView.as_view(),      name="pending-logs"),
