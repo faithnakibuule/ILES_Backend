@@ -17,9 +17,10 @@ class CustomUserManager(BaseUserManager):
     def create_superuser(self, email, password=None, **extra_fields):
         extra_fields.setdefault('is_staff', True)
         extra_fields.setdefault('is_superuser',True)
+        extra_fields.setdefault('role', 'admin')
         return self.create_user(email, password, **extra_fields)   
     
-#defines what auser record holds in the database    
+#defines what a user record holds in the database    
 class CustomUser(AbstractUser):
     ROLE_CHOICES = [
         ('student','Student'),
@@ -35,12 +36,28 @@ class CustomUser(AbstractUser):
         choices = ROLE_CHOICES,
         default = 'student'
     )
+    phone = models.CharField(max_length=20, blank=True, null=True)
+    academic_supervisor = models.ForeignKey(
+        'self',
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='supervisor_students',
+        limit_choices_to={'role': 'academic_supervisor'}
+    )
+    company = models.ForeignKey(
+        'placements.Company',
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='users'
+    )
 
     USERNAME_FIELD = 'email'
-    REQUIRED_FIELDS = [] #email is required by default, so we don't need to add it here
-    phone = models.CharField(max_length=20, blank=True, null=True) #optional phone number field
-    
-    objects = CustomUserManager()#tells Django to use our custom manager for user creation and management
+    REQUIRED_FIELDS =[]
+
+    objects = CustomUserManager()
+
     def __str__(self):
         return f"{self.email} ({self.role})"
 

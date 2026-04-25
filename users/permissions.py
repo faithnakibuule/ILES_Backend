@@ -1,4 +1,4 @@
-from rest_famework.permissions import BasePermission
+from rest_framework.permissions import BasePermission
 
 class IsStudentUser(BasePermission):
     #Grants access only to the authenticated users with the sers role of 'student'.

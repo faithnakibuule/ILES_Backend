@@ -40,11 +40,14 @@ INSTALLED_APPS = [
     # Third-party
     'rest_framework',
     'corsheaders',
+    'django_filters',
     # Local apps
     'users',
     'placements',
     'logbook',
+    'dashboards',
     'reviews',
+    
 ]
 
 #Custom user model
@@ -139,11 +142,33 @@ REST_FRAMEWORK ={
     'DEFAULT_PERMISSION_CLASSES': [
         'rest_framework.permissions.IsAuthenticated',
     ],
-    'DEFAULT PARSER CLASSES': [
+    'DEFAULT_PARSER_CLASSES': [
         'rest_framework.parsers.JSONParser',
         'rest_framework.parsers.FormParser',
         'rest_framework.parsers.MultiPartParser',
     ],
+    'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.PageNumberPagination',
+    'PAGE_SIZE': 10,
+    
+    'DEFAULT_FILTER_BACKENDS': [
+        'django_filters.rest_framework.DjangoFilterBackend',  # filter by field
+        'rest_framework.filters.SearchFilter',                # ?search=
+        'rest_framework.filters.OrderingFilter',              # ?ordering=
+    ],
+    'DEFAULT_THROTTLE_CLASSES': [
+        'rest_framework.throttling.AnonRateThrottle',
+        'rest_framework.throttling.UserRateThrottle',
+    ],
+
+    # The actual rate limits — scope name matches throttle class scope
+    'DEFAULT_THROTTLE_RATES': {
+        'anon':     '100/day',   # default fallback for anonymous users
+        'user':     '1000/day',  # default fallback for logged-in users
+        'login':    '100/minute',  # our custom LoginRateThrottle
+        'register': '50/hour',    # our custom RegisterRateThrottle
+    },
+
+    'EXCEPTION_HANDLER': 'api.error_handlers.custom_exception_handler',
 }
 
 #CORS SETTINGS
@@ -151,4 +176,5 @@ REST_FRAMEWORK ={
 CORS_ALLOWED_ORIGINS = [
     "http://localhost:5173",
 ]
+
 
