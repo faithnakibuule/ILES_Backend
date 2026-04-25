@@ -7,7 +7,28 @@ from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
+<<<<<<< HEAD
+from django.utils import timezone
+from rest_framework import status
+from django.shortcuts import get_object_or_404
+from  logbook.models import WeeklyLog
+from users.models import CustomUser
+from placements.models import InternshipPlacement
+from django.db.models import Avg, Count
+from reviews.models import Evaluation
+from users.permissions import IsAcademicSupervisor
+from users.permissions import IsWorkplaceSupervisor
+from users.permissions import IsStudentUser
+from rest_framework.generics import ListAPIView
+from logbook.serializers import LogReadSerializer
+from django.db.models import Avg, Count, Q
+from rest_framework.views import APIView
+from rest_framework.response import Response
+from rest_framework.permissions import IsAuthenticated, IsAdminUser
+from placements.models import InternshipPlacement
+=======
 
+>>>>>>> 3de7a7f75f58e183dbcc7babe772e745180ee8cb
 from logbook.models import WeeklyLog
 from logbook.serializers import LogReadSerializer
 from logbook.services import (
@@ -22,8 +43,33 @@ from users.models import CustomUser
 from users.permissions import IsAcademicSupervisor
 
 
+
 @api_view(["GET"])
 @permission_classes([IsAuthenticated])
+def student_progress_me(request):
+    # ── THE FIX: filter by request.user, not all logs ──
+    logs = WeeklyLog.objects.filter(
+        intern=request.user          # ← THIS is the isolation fix
+    ).order_by("week_number")
+
+    data = []
+    for log in logs:
+        score = None
+        if log.status == "APPROVED":
+            evaluation = Evaluation.objects.filter(log=log).first()
+            if evaluation:
+                score = evaluation.total_score
+
+        data.append ({
+             "week_number":log.week_number,
+            "status": log.status,
+            "score_if_approved": score,
+        })
+
+    return Response(data)
+
+
+
 def student_stats(request):
     user = request.user
     if user.role != "student":
@@ -35,6 +81,25 @@ def student_stats(request):
     approved_logs = qs.filter(status="APPROVED").count()
     overdue_logs = sum(1 for log in qs.exclude(status="APPROVED") if log.is_overdue)
 
+<<<<<<< HEAD
+    logs_submitted = qs.filter(status__in = ["SUBMITTED", "APPROVED"]).count()
+    pending_reviews = qs.filter(status = "SUBMITTED").count()
+    approved_logs = qs.filter(status = "APPROVED").count()
+    weeks_remaining = max(12 - approved_logs, 0)
+    overdue_logs = sum(1 for log in qs.exclude(status = "APPROVED") if log.is_overdue)
+
+    return Response({
+        "logs_submitted": logs_submitted,
+        "pending_review": pending_reviews,
+        "approved_logs": approved_logs,
+        "weeks_remaining": weeks_remaining,
+        "overdue_logs": overdue_logs,
+    })
+# dashboards/views.py
+class DashboardStatsView(APIView):
+    permission_classes = [IsAuthenticated, IsAdminUser]
+    
+=======
     placement = get_active_placement(user)
     total_weeks = 0
     if placement:
@@ -55,6 +120,7 @@ def student_stats(request):
 
 class AdminDashboardOverviewView(APIView):
     permission_classes = [IsAuthenticated]
+>>>>>>> 3de7a7f75f58e183dbcc7babe772e745180ee8cb
 
     def get(self, request):
         if request.user.role != "admin":
@@ -152,10 +218,23 @@ class StudentDashboardOverviewView(APIView):
             }
         )
 
+<<<<<<< HEAD
+        approved_logs = WeeklyLog.objects.filter(status='APPROVED').count()
+
+        return Response({
+            'total_students':total_students,
+            'active_placements': active_placements,
+            'approved_logs': approved_logs
+        })
+
+class WorkplaceStatsView(APIView):
+    permission_classes = [IsAuthenticated, IsWorkplaceSupervisor]
+=======
 
 class WorkplaceStatsView(APIView):
     permission_classes = [IsAuthenticated]
 
+>>>>>>> 3de7a7f75f58e183dbcc7babe772e745180ee8cb
     def get(self, request):
         supervisor = request.user
         if supervisor.role != "workplace_supervisor":
@@ -242,9 +321,24 @@ class AcademicStatsView(APIView):
     def get(self, request):
         user = request.user
         logs_to_score = WeeklyLog.objects.filter(
+<<<<<<< HEAD
+            status = 'REVIEWED'
+        ).exclude(id__in = already_scored_log_ids
+        ).count()
+
+        avg_result = Evaluation.objects.filter(
+            academic_supervisor = user
+        ).aggregate(avg = Avg('total_score'))
+        avg_cohort_score = (
+            round(avg_result['avg'], 1)
+            if avg_result['avg'] is not None
+            else None 
+        )
+=======
             placement__academic_supervisor=user,
             status="REVIEWED",
         ).exclude(evaluations__academic_supervisor=user).count()
+>>>>>>> 3de7a7f75f58e183dbcc7babe772e745180ee8cb
 
         avg_result = Evaluation.objects.filter(academic_supervisor=user).aggregate(
             avg=Avg("total_score")
@@ -348,7 +442,12 @@ class StudentProgressView(APIView):
         return Response(progress_data)
 
 
+<<<<<<< HEAD
+        
+class PendingLogsView(ListAPIView):
+=======
 class PendingLogsView(APIView):
+>>>>>>> 3de7a7f75f58e183dbcc7babe772e745180ee8cb
     permission_classes = [IsAuthenticated]
 
     def get(self, request):
@@ -368,6 +467,10 @@ class LogsPerWeekView(APIView):
     permission_classes = [IsAuthenticated]
 
     def get(self, request):
+
+        if request.user.role not in ["academic_supervisor", "admin"]:
+            return Response({"detail":"Forbidden"},status=403)
+
         data = (
             WeeklyLog.objects.values("week_number")
             .annotate(count=Count("id"))
@@ -405,6 +508,11 @@ class CohortScoresView(APIView):
                 unique_placements[placement.student_id] = placement
         placements = unique_placements.values()
 
+<<<<<<< HEAD
+            all_logs = WeeklyLog.objects.filter(intern=student)
+            total_logs = len(all_logs)
+            approved_logs = sum(1 for l in all_logs if l.status == 'APPROVED')
+=======
         cohort_data = []
         for placement in placements:
             student_logs = WeeklyLog.objects.filter(
@@ -420,6 +528,7 @@ class CohortScoresView(APIView):
                 ).aggregate(avg=Avg("total_score"))["avg"]
                 or 0
             )
+>>>>>>> 3de7a7f75f58e183dbcc7babe772e745180ee8cb
 
             cohort_data.append(
                 {
@@ -433,8 +542,12 @@ class CohortScoresView(APIView):
                 }
             )
 
+<<<<<<< HEAD
+            avg_score = round(sum(scores) / len(scores), 2) if scores else None
+=======
         cohort_data.sort(key=lambda item: item["avg_score"], reverse=True)
         return Response(cohort_data)
+>>>>>>> 3de7a7f75f58e183dbcc7babe772e745180ee8cb
 
 
 class WorkplaceInternDetailView(APIView):
