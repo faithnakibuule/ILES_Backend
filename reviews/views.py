@@ -107,9 +107,12 @@ class EvaluationViewSet(viewsets.ModelViewSet):
         return Evaluation.objects.none()
 
     def _validate_log_access(self, user, log):
-        if log.status not in ["REVIEWED", "APPROVED"]:
+        if log.status == "APPROVED":
+            if not Evaluation.objects.filter(log=log, academic_supervisor=user).exists():
+                raise ValidationError("This log is already approved and cannot be scored again.")
+        elif log.status != "REVIEWED":
             raise ValidationError(
-                f"Log must be REVIEWED or APPROVED before evaluation. Current status: {log.status}"
+                f"Log must be REVIEWED before evaluation. Current status: {log.status}"
             )
 
         if user.role != "academic_supervisor":
@@ -211,3 +214,4 @@ class CriteriaViewSet(viewsets.ReadOnlyModelViewSet):
     queryset = EvaluationCriteria.objects.all().order_by("id")
     serializer_class = EvaluationCriteriaSerializer
     permission_classes = [IsAuthenticated]
+
