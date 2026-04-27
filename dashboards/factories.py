@@ -4,6 +4,7 @@ from datetime import date, timedelta
 from decimal import Decimal
 
 from django.contrib.auth import get_user_model
+from django.utils import timezone
 
 from placements.models import InternshipPlacement
 from logbook.models import WeeklyLog
@@ -100,9 +101,14 @@ def make_admin(**kwargs):
 
 def make_placement(student, supervisor, **kwargs):
     today = date.today()
+    default_academic = kwargs.pop(
+        "academic_supervisor",
+        User.objects.filter(role="academic_supervisor").order_by("-id").first(),
+    )
     defaults = {
         "student":              student,
         "workplace_supervisor": supervisor,
+        "academic_supervisor":  default_academic,
         "company_name":         kwargs.pop("company_name", "Test Company Ltd"),
         "start_date":           kwargs.pop("start_date",   today),
         "end_date":             kwargs.pop("end_date",     today + timedelta(weeks=12)),
@@ -132,7 +138,7 @@ def make_log(student, placement, status="DRAFT", **kwargs):
 
     if status in ("SUBMITTED", "REVIEWED", "APPROVED"):
         defaults["submitted_at"] = kwargs.pop(
-            "submitted_at", date.today() - timedelta(days=3)
+            "submitted_at", timezone.now() - timedelta(days=3)
         )
 
     defaults.update(kwargs)
@@ -170,6 +176,9 @@ def make_evaluation(log, academic_supervisor, criteria=None, **kwargs):
         {str(c.id): 75 for c in criteria}
     )
     
+    if "score" in kwargs and "total_score" not in kwargs:
+        kwargs["total_score"] = kwargs.pop("score")
+
     if "total_score" in kwargs:
         total_score = kwargs.pop("total_score")
     else:
