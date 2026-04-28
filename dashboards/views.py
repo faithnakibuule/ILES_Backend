@@ -547,6 +547,3 @@ class WorkplaceReviewActivityView(APIView):
             for item in reversed(weekly_data)
         ]
         return Response(result)
-            for item in reversed(weekly_data)
-        ]
-        return Response(result)
