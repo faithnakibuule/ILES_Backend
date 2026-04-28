@@ -11,7 +11,7 @@ ILES (Internship Logging & Evaluation System) is a web-based platform that manag
 ### 🧩 System Modules
 
 | Module | Description |
-|--------|-------------|
+| -------- | ----------- |
 | **M1 — Auth & User Management** | Login, registration, and role-based access control |
 | **M2 — Placements** | Linking students to companies and supervisors |
 | **M3 — Logbook** | Weekly log submission with deadline enforcement |
@@ -23,7 +23,7 @@ ILES (Internship Logging & Evaluation System) is a web-based platform that manag
 ## 🛠️ Tech Stack
 
 | Layer | Technology |
-|-------|------------|
+| ------- | ---------- |
 | **Backend** | Python 3.11+, Django 4.x, Django REST Framework |
 | **Frontend** | React 18, React Router DOM |
 | **Database** | PostgreSQL |
@@ -83,7 +83,7 @@ python manage.py migrate
 python manage.py runserver
 ```
 
-> 🔗 Backend runs at: **http://127.0.0.1:8000**
+> 🔗 Backend runs at: **<http://127.0.0.1:8000>**
 
 ### 3. Frontend Setup (React)
 
@@ -98,7 +98,7 @@ npm install
 npm run dev
 ```
 
-> 🔗 Frontend runs at: **http://localhost:3000**
+> 🔗 Frontend runs at: **<http://localhost:3000>**
 
 ---
 
@@ -126,7 +126,7 @@ git push origin m5-dashboard
 ## 🌿 Team Branches
 
 | Branch | Purpose |
-|--------|---------|
+| -------- | --------- |
 | `main` | Production-ready code only |
 | `dev` | Shared integration branch *(always pull from here)* |
 | `m1-auth` | M1: Auth & User Management |
@@ -140,7 +140,7 @@ git push origin m5-dashboard
 ## 📅 Project Timeline
 
 | Week | Focus |
-|------|-------|
+| ------ | ------- |
 | Week 1 | Environment setup, SDLC foundations, Django & React scaffolding |
 | Week 2 | Custom user model, JWT auth, placement APIs |
 | Week 3 | Logbook module, weekly log forms, deadline logic |
@@ -153,8 +153,9 @@ git push origin m5-dashboard
 
 ## 👥 Authors
 
-**Tambwe Rahim Stone**  
+**Tambwe Rahim Stone** 
+**Kamwine Jonan** 
 
 ---
 
-*Prepared by Group 5*
+## Prepared by Group 5

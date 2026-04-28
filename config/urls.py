@@ -14,5 +14,5 @@ urlpatterns = [
     path('api/', include('dashboards.urls')),
     path('api/', include('logbook.urls')),
     path('api/', include('reviews.urls')),
+    path('api/core/', include('apps.core.urls')),
 ]
-
