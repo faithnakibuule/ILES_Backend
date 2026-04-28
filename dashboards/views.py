@@ -4,7 +4,9 @@ from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated
 from django.db.models import Count
 from django.db.models.functions import TruncWeek
-from datetime import datetime
+
+# TODO: import ReviewAction from its module once the review workflow app is merged.
+# from apps.review.models import ReviewAction
 
 class WorkplaceReviewActivityView(APIView):
     permission_classes = [IsAuthenticated]
