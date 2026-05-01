@@ -1,5 +1,7 @@
 from pathlib import Path
 from datetime import timedelta
+import sys
+
 from decouple import config, Csv
 
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -66,12 +68,33 @@ TEMPLATES = [
 WSGI_APPLICATION = 'config.wsgi.application'
 
 # ── Database ──────────────────────────────────────────────────────────────────
-DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
+db_engine = config('DB_ENGINE', default='django.db.backends.postgresql')
+
+if 'test' in sys.argv:
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.sqlite3',
+            'NAME': BASE_DIR / 'test_db.sqlite3',
+        }
     }
-}
+elif db_engine == 'django.db.backends.sqlite3':
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.sqlite3',
+            'NAME': config('DB_NAME', default=str(BASE_DIR / 'db.sqlite3')),
+        }
+    }
+else:
+    DATABASES = {
+        'default': {
+            'ENGINE': config('DB_ENGINE'),
+            'NAME': config('DB_NAME'),
+            'USER': config('DB_USER'),
+            'PASSWORD': config('DB_PASSWORD'),
+            'HOST': config('DB_HOST', default='127.0.0.1'),
+            'PORT': config('DB_PORT', default=5432, cast=int),
+        }
+    }
 
 # ── Password Validation ───────────────────────────────────────────────────────
 AUTH_PASSWORD_VALIDATORS = [
@@ -89,6 +112,9 @@ USE_TZ = True
 
 # ── Static Files ──────────────────────────────────────────────────────────────
 STATIC_URL = 'static/'
+STATIC_ROOT = BASE_DIR / 'staticfiles'
+STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
+
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 # ── CORS ──────────────────────────────────────────────────────────────────────
