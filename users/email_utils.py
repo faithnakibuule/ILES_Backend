@@ -80,7 +80,7 @@ def send_log_approved_email(student, week_number , score):
     _send(
         subject = f"[ILES] Week {week_number} Log Approved!",
         message = (
-            f"Hello {student.firstname},\n\n"
+            f"Hello {student.first_name},\n\n"
             f"Great news! Your week {week_number} log has been approved by your academic supervisor with a score of {score}.\n\n"
             f"Log in to the ILES system to view your score and feedback.\n\n"
             f"Best regards,\n"
