@@ -45,6 +45,10 @@ class RegisterSerializer(serializers.ModelSerializer):
         # Check email uniqueness
         if CustomUser.objects.filter(email=data['email']).exists():
             raise serializers.ValidationError("Email already exists")
+        
+        # Block admin role registration
+        if data.get('role') == 'admin':
+            raise serializers.ValidationError("Admin accounts cannot be created via registration.")
 
         return data
     

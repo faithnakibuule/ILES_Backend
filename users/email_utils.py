@@ -44,7 +44,7 @@ def send_log_reviewed_email(student, academic_supervisor, week_number):
     subject = f"[Iles] Log raedy for scoring - Week {week_number}",
     message = (
         f"Hello {academic_supervisor.first_name},\n\n"
-        f"A week {week_number} log from {student.firstname} {student.lastname}"
+            f"A week {week_number} log from {student.first_name} {student.last_name}"
         f"has been reviewed and is ready for scoring.\n\n"
         f"Please log in to the ILES system to review and score the log at your earliest convenience.\n\n"
         f"Best regards,\n"
@@ -61,7 +61,7 @@ def send_log_sent_back_email(student, week_number, comment):
     _send(
         subject = f"[ILES] Your week {week_number} Log  Needs Revision ",
         message=(
-            f"Hello {student.firstname}\n\n"
+            f"Hello {student.first_name}\n\n"
             f"Your week {week_number} log has been sent back by your workplace supervisor with the following comment:\n\n"
             f"Supervisor's comment:\n {comment}\n\n"
             
