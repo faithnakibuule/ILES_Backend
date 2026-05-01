@@ -159,6 +159,7 @@ class NotificationSignalTest(TestCase):
         self.placement = InternshipPlacement.objects.create(
             student = self.student,
             workplace_supervisor = self.workplace_sup,
+            academic_supervisor = self.academic_sup,
             company_name = 'Test Corp',
             start_date = '2026-06-01',
             end_date = '2026-08-31',
@@ -272,7 +273,7 @@ class NotificationSignalTest(TestCase):
         response = self.client.post('/api/evaluations/', {
             'log': log.id,
             'comments': 'Good work.',
-            'criteria_scores': {}
+            'rating': 4
         }, format = 'json')
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
 

@@ -4,7 +4,7 @@ from users.views import WeeklyLogListView
 from django.urls import path, include
 
 urlpatterns = [
-     path("api/dashboards", include("dashboards.urls")),
+     path("api/dashboards/", include("dashboards.urls")),
     path('logs/', WeeklyLogListView.as_view(), name='weekly-logs'),
     path('admin/', admin.site.urls),
     path('api/', include('reviews.urls')),

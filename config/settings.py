@@ -6,12 +6,11 @@ from decouple import config, Csv
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-# ── Security ──────────────────────────────────────────────────────────────────
+# Security
 SECRET_KEY = config('SECRET_KEY')
 DEBUG = config('DEBUG', default=False, cast=bool)
 ALLOWED_HOSTS = config('ALLOWED_HOSTS', default='', cast=Csv())
 
-# ── Installed Apps ────────────────────────────────────────────────────────────
 INSTALLED_APPS = [
     'django.contrib.admin',
     'django.contrib.auth',
@@ -35,7 +34,6 @@ INSTALLED_APPS = [
 
 AUTH_USER_MODEL = 'users.CustomUser'
 
-# ── Middleware ────────────────────────────────────────────────────────────────
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
     'whitenoise.middleware.WhiteNoiseMiddleware',
@@ -67,20 +65,14 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'config.wsgi.application'
 
-# ── Database ──────────────────────────────────────────────────────────────────
-<<<<<<< HEAD
-db_engine = config('DB_ENGINE', default='django.db.backends.postgresql')
-=======
-import sys
->>>>>>> ca655cb8d6ff478e6d7cbf262952c0cabcfd7ebd
-
+# Database
+db_engine = config('DB_ENGINE', default='django.db.backends.sqlite3')
 if 'test' in sys.argv:
     DATABASES = {
         'default': {
             'ENGINE': 'django.db.backends.sqlite3',
             'NAME': BASE_DIR / 'test_db.sqlite3',
         }
-<<<<<<< HEAD
     }
 elif db_engine == 'django.db.backends.sqlite3':
     DATABASES = {
@@ -100,33 +92,7 @@ else:
             'PORT': config('DB_PORT', default=5432, cast=int),
         }
     }
-=======
-    }
-else:
-    # Use SQLite for development if no DB_ENGINE is set
-    db_engine = config('DB_ENGINE', default='django.db.backends.sqlite3')
-    if db_engine == 'django.db.backends.postgresql':
-        DATABASES = {
-            'default': {
-                'ENGINE': config('DB_ENGINE'),
-                'NAME': config('DB_NAME'),
-                'USER': config('DB_USER'),
-                'PASSWORD': config('DB_PASSWORD'),
-                'HOST': config('DB_HOST', default='127.0.0.1'),
-                'PORT': config('DB_PORT', default='5432', cast=int),
-            }
-        }
-    else:
-        # Default to SQLite
-        DATABASES = {
-            'default': {
-                'ENGINE': 'django.db.backends.sqlite3',
-                'NAME': BASE_DIR / 'db.sqlite3',
-            }
-        }
->>>>>>> ca655cb8d6ff478e6d7cbf262952c0cabcfd7ebd
 
-# ── Password Validation ───────────────────────────────────────────────────────
 AUTH_PASSWORD_VALIDATORS = [
     {'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator'},
     {'NAME': 'django.contrib.auth.password_validation.MinimumLengthValidator'},
@@ -134,23 +100,19 @@ AUTH_PASSWORD_VALIDATORS = [
     {'NAME': 'django.contrib.auth.password_validation.NumericPasswordValidator'},
 ]
 
-# ── Internationalisation ──────────────────────────────────────────────────────
 LANGUAGE_CODE = 'en-us'
 TIME_ZONE = 'UTC'
 USE_I18N = True
 USE_TZ = True
 
-# ── Static Files ──────────────────────────────────────────────────────────────
 STATIC_URL = 'static/'
 STATIC_ROOT = BASE_DIR / 'staticfiles'
 STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
-# ── CORS ──────────────────────────────────────────────────────────────────────
 CORS_ALLOWED_ORIGINS = config('CORS_ALLOWED_ORIGINS', default='', cast=Csv())
 
-# ── REST Framework ────────────────────────────────────────────────────────────
 REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': [
         'rest_framework_simplejwt.authentication.JWTAuthentication',
@@ -179,25 +141,22 @@ REST_FRAMEWORK = {
         'rest_framework.throttling.UserRateThrottle',
     ],
     'DEFAULT_THROTTLE_RATES': {
-        'anon':     '100/day',
-        'user':     '1000/day',
-        'login':    '10/minute',
+        'anon': '100/day',
+        'user': '1000/day',
+        'login': '10/minute',
         'register': '50/hour',
     },
     'EXCEPTION_HANDLER': 'api.error_handlers.custom_exception_handler',
 }
 
-# ── Simple JWT ────────────────────────────────────────────────────────────────
 SIMPLE_JWT = {
-    'ACCESS_TOKEN_LIFETIME':  timedelta(minutes=30),
+    'ACCESS_TOKEN_LIFETIME': timedelta(minutes=30),
     'REFRESH_TOKEN_LIFETIME': timedelta(days=7),
-    'ROTATE_REFRESH_TOKENS':  True,
+    'ROTATE_REFRESH_TOKENS': True,
     'BLACKLIST_AFTER_ROTATION': True,
     'AUTH_HEADER_TYPES': ('Bearer',),
 }
 
-# ── Email Configuration ───────────────────────────────────────────────────────
-# Django hands emails to Gmail's SMTP server which delivers them
 EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
 EMAIL_HOST = config('EMAIL_HOST', default='smtp.gmail.com')
 EMAIL_PORT = config('EMAIL_PORT', default=587, cast=int)
