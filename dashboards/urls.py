@@ -16,6 +16,7 @@ from .views import (
     StudentDashboardOverviewView,
     WorkplaceDashboardOverviewView,
     WorkplaceInternDetailView,
+    WorkplaceReviewActivityView,
 )
 
 urlpatterns = [
@@ -34,5 +35,5 @@ urlpatterns = [
     path('status-distribution/', StatusDistributionView.as_view(), name = 'status-distribution'),
     path("student-progress/<int:student_id>/",StudentProgressView.as_view(),name="student-progress",),
     path('cohort-scores/', CohortScoresView.as_view(), name='cohort-scores'),
-
+    path('workplace-review-activity/', WorkplaceReviewActivityView.as_view(), name='workplace-review-activity'),
 ]

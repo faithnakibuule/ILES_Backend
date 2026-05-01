@@ -1,4 +1,5 @@
 from django.db.models import Avg, Count, Q
+from django.db.models.functions import TruncWeek
 from django.shortcuts import get_object_or_404
 from django.utils import timezone
 
@@ -51,6 +52,8 @@ def student_progress_me(request):
 def student_stats(request):
     user = request.user
     if user.role != "student":
+        if not request.user.is_authenticated:
+            return Response({"error": "Authentication required."}, status=401)
         return Response({"detail": "Only students can access this endpoint."}, status=403)
 
     qs = WeeklyLog.objects.filter(intern=user)
@@ -84,16 +87,27 @@ class AdminDashboardOverviewView(APIView):
         if request.user.role != "admin":
             return Response({"detail": "Forbidden"}, status=status.HTTP_403_FORBIDDEN)
 
+        active_placements = InternshipPlacement.objects.filter(status="ACTIVE").count()
+        completed_placements = InternshipPlacement.objects.filter(status="COMPLETED").count()
+        total_logs = WeeklyLog.objects.count()
+        approved_logs = WeeklyLog.objects.filter(status="APPROVED").count()
         pending_evaluations = WeeklyLog.objects.filter(status="REVIEWED").count()
         return Response(
             {
                 "total_students": CustomUser.objects.filter(role="student").count(),
-                "active_internships": InternshipPlacement.objects.filter(status="ACTIVE").count(),
-                "completed_internships": InternshipPlacement.objects.filter(status="COMPLETED").count(),
+                "active_placements": active_placements,
+                "active_internships": active_placements,
+                "completed_placements": completed_placements,
+                "completed_internships": completed_placements,
+                "total_logs": total_logs,
+                "approved_logs": approved_logs,
                 "total_companies": Company.objects.count(),
                 "pending_evaluations": pending_evaluations,
                 "total_workplace_supervisors": CustomUser.objects.filter(
                     role="workplace_supervisor"
+                ).count(),
+                "total_academic_supervisors": CustomUser.objects.filter(
+                    role="academic_supervisor"
                 ).count(),
             }
         )
@@ -281,7 +295,9 @@ class AcademicStatsView(APIView):
         return Response(
             {
                 "logs_to_score": logs_to_score,
-                "avg_cohort_score": round(avg_result["avg"] or 0, 1),
+                "avg_cohort_score": round(avg_result["avg"], 1)
+                if avg_result["avg"] is not None
+                else None,
                 "fully_approved": fully_approved,
             }
         )
@@ -499,3 +515,35 @@ class WorkplaceInternDetailView(APIView):
                 "review_history": ReviewActionSerializer(history, many=True).data,
             }
         )
+
+
+class WorkplaceReviewActivityView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        user = request.user
+        if user.role != 'workplace_supervisor':
+            return Response({"error": "Not authorized"}, status=403)
+
+        # Filter review actions where this supervisor approved/reviewed a log
+        # Adjust action names based on your ReviewAction.ACTION_CHOICES
+        reviews = ReviewAction.objects.filter(
+            action_by=user,
+            action__in=['APPROVED', 'REVIEWED']   # pick the one you use
+        )
+
+        # Group by week (works on PostgreSQL and SQLite with date)
+        weekly_data = (
+            reviews
+            .annotate(week=TruncWeek('timestamp'))
+            .values('week')
+            .annotate(count=Count('id'))
+            .order_by('-week')[:8]
+        )
+
+        # Format for frontend (oldest first)
+        result = [
+            {"week": item["week"].strftime("%b %d"), "count": item["count"]}
+            for item in reversed(weekly_data)
+        ]
+        return Response(result)

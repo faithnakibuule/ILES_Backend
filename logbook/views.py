@@ -136,6 +136,30 @@ class LogViewSet(viewsets.ModelViewSet):
 
         return self._serialize_read(log)
 
+    def update(self, request, *args, **kwargs):
+        finalize_expired_logs()
+        instance = self.get_object()
+
+        if request.user.role == "student" and instance.intern != request.user:
+            raise PermissionDenied("You can only edit your own log.")
+
+        serializer = self.get_serializer(instance, data=request.data)
+        serializer.is_valid(raise_exception=True)
+        log = serializer.save()
+
+        if request.user.role == "student" and request.data.get("status") == "SUBMITTED":
+            from .serializers import validate_required_log_fields
+            validate_required_log_fields(log)
+            if not can_transition(log, "SUBMITTED", request.user.role):
+                raise ValidationError("You are not allowed to submit this weekly log.")
+            from django.utils import timezone
+
+            log.status = "SUBMITTED"
+            log.submitted_at = timezone.localtime()
+            log.save(update_fields=["status", "submitted_at"])
+
+        return self._serialize_read(log)
+
     @action(detail=False, methods=["get"], permission_classes=[IsAuthenticated], url_path="summary")
     def summary(self, request):
         finalize_expired_logs()
@@ -223,3 +247,4 @@ class LogViewSet(viewsets.ModelViewSet):
             },
             status=status.HTTP_200_OK,
         )
+

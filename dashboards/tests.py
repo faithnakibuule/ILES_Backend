@@ -491,7 +491,7 @@ class CohortScoresTests(DashboardTestBase):
         self.assertEqual(response.status_code, 200)
         print("\nCohort scores response:", response.data)
 
-        student_full_name = self.student.get_full_name.strip()
+        student_full_name = self.student.get_full_name().strip()
         student_row = None
         for row in response.data:
             name_in_row = (
