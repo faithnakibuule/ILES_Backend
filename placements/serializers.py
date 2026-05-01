@@ -8,10 +8,21 @@ from .models import Company, InternshipPlacement
 
 class CompanySerializer(serializers.ModelSerializer):
     supervisor_count = serializers.IntegerField(read_only=True)
+    supervisors = serializers.SerializerMethodField(read_only=True)
+    supervisor_ids = serializers.ListField(
+        child=serializers.IntegerField(),
+        write_only=True,
+        required=False,
+    )
 
     class Meta:
         model = Company
-        fields = ["id", "name", "supervisor_count"]
+        fields = ["id", "name", "supervisor_count", "supervisors", "supervisor_ids"]
+
+    def get_supervisors(self, obj):
+        """Get all workplace supervisors assigned to this company."""
+        supervisors = obj.users.filter(role="workplace_supervisor")
+        return CustomUserSerializer(supervisors, many=True).data
 
 
 class PlacementSerializer(serializers.ModelSerializer):
