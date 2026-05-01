@@ -173,3 +173,96 @@ class PlacementViewSet(viewsets.ModelViewSet):
         if user.role == "academic_supervisor" and instance.academic_supervisor != user:
             raise PermissionDenied("You can only view placements you supervise.")
         return super().retrieve(request, *args, **kwargs)
+
+
+class CompanyViewSet(viewsets.ModelViewSet):
+    queryset = Company.objects.annotate(
+        supervisor_count=Count(
+            "users", filter=Q(users__role="workplace_supervisor")
+        )
+    ).order_by("name")
+    serializer_class = CompanySerializer
+    permission_classes = [permissions.IsAuthenticated]
+
+    def get_queryset(self):
+        queryset = Company.objects.annotate(
+            supervisor_count=Count(
+                "users", filter=Q(users__role="workplace_supervisor")
+            )
+        ).order_by("name")
+        return queryset
+
+    def check_admin_permission(self):
+        if self.request.user.role != "admin":
+            raise PermissionDenied("Only admins can manage companies.")
+
+    def create(self, request, *args, **kwargs):
+        self.check_admin_permission()
+        return super().create(request, *args, **kwargs)
+
+    def update(self, request, *args, **kwargs):
+        self.check_admin_permission()
+        return super().update(request, *args, **kwargs)
+
+    def partial_update(self, request, *args, **kwargs):
+        self.check_admin_permission()
+        return super().partial_update(request, *args, **kwargs)
+
+    def destroy(self, request, *args, **kwargs):
+        self.check_admin_permission()
+        return super().destroy(request, *args, **kwargs)
+
+    @action(detail=True, methods=["post"], permission_classes=[permissions.IsAuthenticated])
+    def assign_supervisors(self, request, pk=None):
+        """Assign workplace supervisors to a company."""
+        self.check_admin_permission()
+        
+        company = self.get_object()
+        supervisor_ids = request.data.get("supervisor_ids", [])
+        
+        if not isinstance(supervisor_ids, list):
+            return Response(
+                {"error": "supervisor_ids must be a list"},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+        
+        try:
+            # Get all supervisors currently assigned to this company
+            current_supervisors = CustomUser.objects.filter(company=company)
+            
+            # Unassign them first
+            for supervisor in current_supervisors:
+                supervisor.company = None
+                supervisor.save(update_fields=["company"])
+            
+            # Assign new supervisors
+            new_supervisors = CustomUser.objects.filter(
+                id__in=supervisor_ids, 
+                role="workplace_supervisor"
+            )
+            
+            for supervisor in new_supervisors:
+                supervisor.company = company
+                supervisor.save(update_fields=["company"])
+            
+            # Return updated company with new supervisor count
+            queryset = Company.objects.annotate(
+                supervisor_count=Count(
+                    "users", filter=Q(users__role="workplace_supervisor")
+                )
+            )
+            company = queryset.get(pk=pk)
+            serializer = self.get_serializer(company)
+            
+            return Response(
+                {
+                    "message": "Supervisors assigned successfully.",
+                    "company": serializer.data,
+                },
+                status=status.HTTP_200_OK,
+            )
+        except Exception as e:
+            return Response(
+                {"error": str(e)},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
