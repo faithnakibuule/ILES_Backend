@@ -6,10 +6,31 @@ from decouple import config, Csv
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
+<<<<<<< HEAD
 # Security
+=======
+
+def env_bool(name, default=False):
+    value = config(name, default=default)
+    if isinstance(value, bool):
+        return value
+
+    normalized = str(value).strip().lower()
+    if normalized in {"1", "true", "t", "yes", "y", "on", "debug", "development", "dev"}:
+        return True
+    if normalized in {"0", "false", "f", "no", "n", "off", "release", "prod", "production"}:
+        return False
+    return default
+
+# ── Security ──────────────────────────────────────────────────────────────────
+>>>>>>> 360ad036fe90c4799cb5f91d11f622a40f56313d
 SECRET_KEY = config('SECRET_KEY')
-DEBUG = config('DEBUG', default=False, cast=bool)
-ALLOWED_HOSTS = config('ALLOWED_HOSTS', default='', cast=Csv())
+DEBUG = env_bool('DEBUG', default=False)
+ALLOWED_HOSTS = config(
+    'ALLOWED_HOSTS',
+    default='127.0.0.1,localhost',
+    cast=Csv(),
+)
 
 INSTALLED_APPS = [
     'django.contrib.admin',
@@ -111,7 +132,17 @@ STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
+<<<<<<< HEAD
 CORS_ALLOWED_ORIGINS = config('CORS_ALLOWED_ORIGINS', default='', cast=Csv())
+=======
+# ── CORS ──────────────────────────────────────────────────────────────────────
+CORS_ALLOWED_ORIGINS = config(
+    'CORS_ALLOWED_ORIGINS',
+    default='http://localhost:5173,http://127.0.0.1:5173',
+    cast=Csv(),
+)
+CORS_ALLOW_CREDENTIALS = True
+>>>>>>> 360ad036fe90c4799cb5f91d11f622a40f56313d
 
 REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': [
