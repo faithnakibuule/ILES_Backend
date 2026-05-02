@@ -1,6 +1,19 @@
 from django.db import models
 from django.contrib.auth.models import AbstractUser,BaseUserManager
+
 # Create your models here.
+
+class Course(models.Model):
+    name = models.CharField(max_length=255, unique=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ["name"]
+
+    def __str__(self):
+        return self.name
+
 #This custom user model allows us to use email as the unique identifier instead of username, and also includes a role field to differentiate between different types of users in the system. The CustomUserManager handles the creation of regular users and superusers, ensuring that the necessary fields are set correctly.
 #the builder-knows how to create a user correctly
 class CustomUserManager(BaseUserManager):
@@ -51,6 +64,14 @@ class CustomUser(AbstractUser):
         null=True,
         blank=True,
         related_name='users'
+    )
+    course = models.ForeignKey(
+        'Course',
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='students',
+        limit_choices_to={'role': 'student'},
     )
 
     USERNAME_FIELD = 'email'

@@ -6,10 +6,6 @@ from decouple import config, Csv
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-<<<<<<< HEAD
-# Security
-=======
-
 def env_bool(name, default=False):
     value = config(name, default=default)
     if isinstance(value, bool):
@@ -23,7 +19,6 @@ def env_bool(name, default=False):
     return default
 
 # ── Security ──────────────────────────────────────────────────────────────────
->>>>>>> 360ad036fe90c4799cb5f91d11f622a40f56313d
 SECRET_KEY = config('SECRET_KEY')
 DEBUG = env_bool('DEBUG', default=False)
 ALLOWED_HOSTS = config(
@@ -132,17 +127,13 @@ STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
-<<<<<<< HEAD
-CORS_ALLOWED_ORIGINS = config('CORS_ALLOWED_ORIGINS', default='', cast=Csv())
-=======
 # ── CORS ──────────────────────────────────────────────────────────────────────
 CORS_ALLOWED_ORIGINS = config(
     'CORS_ALLOWED_ORIGINS',
-    default='http://localhost:5173,http://127.0.0.1:5173',
+    default='http://localhost:3000,http://127.0.0.1:3000,http://localhost:5173,http://127.0.0.1:5173',
     cast=Csv(),
 )
 CORS_ALLOW_CREDENTIALS = True
->>>>>>> 360ad036fe90c4799cb5f91d11f622a40f56313d
 
 REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': [

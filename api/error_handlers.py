@@ -49,4 +49,7 @@ def custom_exception_handler(exc, context):
             'code': code,
         }
 
+        if response.status_code == 400:
+            response.data['details'] = original_data
+
     return response

@@ -45,6 +45,13 @@ class PlacementPermissionTests(TestCase):
             "end_date": "2026-08-31",
         })
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+
+    def test_companies_can_be_listed_without_authentication(self):
+        response = self.client.get('/api/placements/companies/')
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        results = response.data if isinstance(response.data, list) else response.data['results']
+        self.assertEqual(results[0]['name'], "Test Company")
             
     def test_admin_can_create_placement(self):
         self.client.force_authenticate(user = self.admin)
@@ -115,6 +122,25 @@ class PlacementPermissionTests(TestCase):
             "end_date": "2026-08-31",
         }, format='json')
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+
+    def test_unassigned_supervisor_returns_validation_error(self):
+        self.client.force_authenticate(user=self.admin)
+        unassigned_supervisor = User.objects.create_user(
+            email='unassigned-supervisor@test.com',
+            password='supervisorpass',
+            role='workplace_supervisor',
+        )
+
+        response = self.client.post('/api/placements/', {
+            "student_id": self.student.id,
+            "workplace_supervisor_id": unassigned_supervisor.id,
+            "company_id": self.company.id,
+            "start_date": "2026-06-01",
+            "end_date": "2026-08-31",
+        }, format='json')
+
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertIn("error", response.data)
 
     def test_update_status_transition(self):
         # Admin creates a placement
