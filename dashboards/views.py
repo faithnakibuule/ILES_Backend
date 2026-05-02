@@ -49,11 +49,12 @@ def student_progress_me(request):
 
 
 
+@api_view(['GET'])
 def student_stats(request):
     user = request.user
+    if not request.user.is_authenticated:
+        return Response({"error": "Authentication required."}, status=401)
     if user.role != "student":
-        if not request.user.is_authenticated:
-            return Response({"error": "Authentication required."}, status=401)
         return Response({"detail": "Only students can access this endpoint."}, status=403)
 
     qs = WeeklyLog.objects.filter(intern=user)

@@ -1,5 +1,11 @@
 from django.shortcuts import render
-from rest_framework import generics, permissions
+from django.conf import settings
+from django.contrib.auth import get_user_model
+from django.contrib.auth.forms import PasswordResetForm, SetPasswordForm
+from django.contrib.auth.tokens import default_token_generator
+from django.utils.encoding import force_str
+from django.utils.http import urlsafe_base64_decode
+from rest_framework import generics, permissions, viewsets, filters, status
 from rest_framework_simplejwt.views import TokenObtainPairView
 from .serializers import (
     AdminUserSerializer,
@@ -7,20 +13,15 @@ from .serializers import (
     CustomUserSerializer,
     RegisterSerializer,
     UserUpdateSerializer,
+    MeSerializer,
 )
 from .models import CustomUser
 from django_filters.rest_framework import DjangoFilterBackend
-from rest_framework import filters
 from .permissions import IsAdminUser
-from rest_framework import viewsets
 from rest_framework.decorators import action
 from rest_framework.views import APIView
-from rest_framework.permissions import IsAuthenticated 
-from rest_framework.response import Response
-from .serializers import MeSerializer
-from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated
-from rest_framework import status
+from rest_framework.response import Response
 from django.db.models import Count
 import csv
 from django.http import HttpResponse
@@ -67,6 +68,56 @@ class CustomTokenObtainPairView(TokenObtainPairView):# It uses the CustomTokenOb
     serializer_class = CustomTokenObtainPairSerializer
     permission_classes = [permissions.AllowAny]
     throttle_classes = [LoginRateThrottle]
+
+class PasswordResetRequestView(APIView):
+    permission_classes = [permissions.AllowAny]
+
+    def post(self, request, *args, **kwargs):
+        form = PasswordResetForm(data=request.data)
+        if form.is_valid():
+            form.save(
+                request=request,
+                use_https=request.is_secure(),
+                from_email=settings.DEFAULT_FROM_EMAIL,
+                email_template_name='registration/password_reset_email.html',
+                subject_template_name='registration/password_reset_subject.txt',
+            )
+            return Response({'detail': 'Password reset instructions have been sent if the email exists.'}, status=status.HTTP_200_OK)
+        return Response(form.errors, status=status.HTTP_400_BAD_REQUEST)
+
+class PasswordResetConfirmView(APIView):
+    permission_classes = [permissions.AllowAny]
+
+    def post(self, request, *args, **kwargs):
+        uid = request.data.get('uid')
+        token = request.data.get('token')
+        new_password = request.data.get('new_password')
+        new_password_confirm = request.data.get('new_password_confirm')
+
+        if not uid or not token:
+            return Response({'detail': 'UID and token are required.'}, status=status.HTTP_400_BAD_REQUEST)
+
+        if new_password != new_password_confirm:
+            return Response({'detail': 'Passwords do not match.'}, status=status.HTTP_400_BAD_REQUEST)
+
+        try:
+            uid = force_str(urlsafe_base64_decode(uid))
+            user = get_user_model().objects.get(pk=uid)
+        except Exception:
+            user = None
+
+        if user is None or not default_token_generator.check_token(user, token):
+            return Response({'detail': 'Invalid or expired token.'}, status=status.HTTP_400_BAD_REQUEST)
+
+        form = SetPasswordForm(user, {
+            'new_password1': new_password,
+            'new_password2': new_password_confirm,
+        })
+
+        if form.is_valid():
+            form.save()
+            return Response({'detail': 'Password has been reset successfully.'}, status=status.HTTP_200_OK)
+        return Response(form.errors, status=status.HTTP_400_BAD_REQUEST)
 
 class WeeklyLogListView(generics.ListCreateAPIView):
     queryset = []

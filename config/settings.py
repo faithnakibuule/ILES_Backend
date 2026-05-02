@@ -52,6 +52,8 @@ AUTH_USER_MODEL = 'users.CustomUser'
 
 # ── Middleware ────────────────────────────────────────────────────────────────
 MIDDLEWARE = [
+    'corsheaders.middleware.CorsMiddleware',
+    'django.middleware.common.CommonMiddleware',
     'django.middleware.security.SecurityMiddleware',
     'whitenoise.middleware.WhiteNoiseMiddleware',
     'corsheaders.middleware.CorsMiddleware',
@@ -189,7 +191,7 @@ SIMPLE_JWT = {
 
 # ── Email Configuration ───────────────────────────────────────────────────────
 # Django hands emails to Gmail's SMTP server which delivers them
-EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
 EMAIL_HOST = config('EMAIL_HOST', default='smtp.gmail.com')
 EMAIL_PORT = config('EMAIL_PORT', default=587, cast=int)
 EMAIL_USE_TLS = config('EMAIL_USE_TLS', default=True, cast=bool)

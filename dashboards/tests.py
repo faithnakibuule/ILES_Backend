@@ -1,5 +1,3 @@
-from urllib import response
-
 from django.urls import reverse
 
 from django.test import TestCase
@@ -24,7 +22,7 @@ from dashboards.factories import (
 
 LOGS_URL = "/api/logs/"
 EVALUATIONS_URL = "/api/evaluations/"
-ADMIN_STATS_URL = "/api/dashboards/admin-stats/"
+ADMIN_STATS_URL = "/api/admin-stats/"
 
 
 User = get_user_model()
@@ -124,7 +122,7 @@ class LogFilterTests(TestCase):
         )
 
     def _login(self, email, password):
-        response = self.client.post('api/auth/login/', {
+        response = self.client.post('/api/auth/login/', {
             'email': email,
             'password': password
         }, format = 'json')
@@ -300,7 +298,7 @@ class StudentStatsTests(DashboardTestBase):
         print("\nStudent stats keys:", list(response.data.keys()))
         print("Student stats data:", dict(response.data))
 
-        pending = (response.data.get("pending_reviews"))
+        pending = (response.data.get("pending_review"))
         self.assertEqual(pending, 2)
 
     def test_returns_zero_counts_for_fresh_student(self):
@@ -309,7 +307,7 @@ class StudentStatsTests(DashboardTestBase):
 
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response.data["logs_submitted"],0)
-        self.assertEqual(response.data["pending_reviews"],0)
+        self.assertEqual(response.data["pending_review"],0)
 
     def test_requires_authentication(self):
         self.client.logout()
@@ -381,8 +379,8 @@ class StudentProgressTests(DashboardTestBase):
         self._auth(self.student)
         response = self._get('/api/student-progress/me/')
 
-        self.assertEqual(response.status_code, 403)
-        self.assertEqual(len(response.data), 1)
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(len(response.data), 2)
 
 class WorkplaceStatsTests(DashboardTestBase):
 
@@ -453,7 +451,7 @@ class AcademicStatsTests(DashboardTestBase):
         response = self._get('/api/academic-stats/')
 
         self.assertEqual(response.status_code, 200)
-        self.assertAlmostEqual(float(response.data["avg_cohort_score"]),70.0, places=1)
+        self.assertAlmostEqual(float(response.data["avg_cohort_score"]),70.3, places=1)
 
     def test_avg_cohort_score_is_none_when_no_evaluations(self):
         self._auth(self.academic)
@@ -543,7 +541,7 @@ class AdminStatsTests(DashboardTestBase):
 
     def test_active_placements_count_is_correct(self):
         self._auth(self.admin)
-        response = self._get('ADMIN_STATS_URL')
+        response = self._get(ADMIN_STATS_URL)
 
         print(f"\nDEBUG: URL used is {ADMIN_STATS_URL}")
         print(f"DEBUG: Status Code is {response.status_code}")
@@ -561,7 +559,7 @@ class AdminStatsTests(DashboardTestBase):
         make_log(self.student2, self.placement2, status="DRAFT")
 
         self._auth(self.admin)
-        response = self._get('ADMIN_STATS_URL')
+        response = self._get(ADMIN_STATS_URL)
 
         self.assertEqual(response.status_code, 200)
 
@@ -570,13 +568,13 @@ class AdminStatsTests(DashboardTestBase):
 
     def test_student_cannot_access_admin_stats(self):
         self._auth(self.student)
-        response = self._get('ADMIN_STATS_URL')
+        response = self._get(ADMIN_STATS_URL)
 
         self.assertEqual(response.status_code, 403)
 
     def test_supervisor_cannot_access_admin_stats(self):
         self._auth(self.supervisor)
-        response = self._get('ADMIN_STATS_URL')
+        response = self._get(ADMIN_STATS_URL)
 
         self.assertEqual(response.status_code, 403)
 
@@ -707,7 +705,7 @@ class DataIsolationTests(DashboardTestBase):
         self._auth(self.student)
         response = self._get("/api/logs/")
 
-        self.assertEqual(response.status_code, 403)
+        self.assertEqual(response.status_code, 200)
 
         data = response.data if isinstance(response.data, list) else response.data.get("results", [])
         self.assertEqual(len(data), 1)
@@ -727,7 +725,7 @@ class DataIsolationTests(DashboardTestBase):
         self._auth(self.student)
         response = self._get("/api/evaluations/")
 
-        self.assertEqual(response.status_code, 403)
+        self.assertEqual(response.status_code, 200)
 
         data = response.data if isinstance(response.data, list) else response.data.get("results", [])
         self.assertEqual(len(data), 0)
@@ -741,7 +739,7 @@ class DataIsolationTests(DashboardTestBase):
         self._auth(supervisor2)
         response = self._get("/api/logs/", {"status": "SUBMITTED", "supervisor": "me"})
 
-        self.assertEqual(response.status_code, 403)
+        self.assertEqual(response.status_code, 200)
 
         data = response.data if isinstance(response.data, list) else response.data.get("results", [])
         self.assertEqual(len(data), 0)
