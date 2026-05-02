@@ -47,13 +47,13 @@ def student_progress_me(request):
 
     return Response(data)
 
-
-
+@api_view(["GET"])
+@permission_classes([IsAuthenticated])
 def student_stats(request):
     user = request.user
+    if not request.user.is_authenticated:
+        return Response({"error": "Authentication required."}, status=401)
     if user.role != "student":
-        if not request.user.is_authenticated:
-            return Response({"error": "Authentication required."}, status=401)
         return Response({"detail": "Only students can access this endpoint."}, status=403)
 
     qs = WeeklyLog.objects.filter(intern=user)
@@ -72,7 +72,7 @@ def student_stats(request):
     return Response(
         {
             "logs_submitted": logs_submitted,
-            "pending_review": pending_review,
+            "pending_reviews": pending_review,
             "approved_logs": approved_logs,
             "weeks_remaining": weeks_remaining,
             "overdue_logs": overdue_logs,

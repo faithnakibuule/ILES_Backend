@@ -543,7 +543,7 @@ class AdminStatsTests(DashboardTestBase):
 
     def test_active_placements_count_is_correct(self):
         self._auth(self.admin)
-        response = self._get('ADMIN_STATS_URL')
+        response = self._get(ADMIN_STATS_URL)
 
         print(f"\nDEBUG: URL used is {ADMIN_STATS_URL}")
         print(f"DEBUG: Status Code is {response.status_code}")
@@ -561,7 +561,7 @@ class AdminStatsTests(DashboardTestBase):
         make_log(self.student2, self.placement2, status="DRAFT")
 
         self._auth(self.admin)
-        response = self._get('ADMIN_STATS_URL')
+        response = self._get(ADMIN_STATS_URL)
 
         self.assertEqual(response.status_code, 200)
 
@@ -570,13 +570,13 @@ class AdminStatsTests(DashboardTestBase):
 
     def test_student_cannot_access_admin_stats(self):
         self._auth(self.student)
-        response = self._get('ADMIN_STATS_URL')
+        response = self._get(ADMIN_STATS_URL)
 
         self.assertEqual(response.status_code, 403)
 
     def test_supervisor_cannot_access_admin_stats(self):
         self._auth(self.supervisor)
-        response = self._get('ADMIN_STATS_URL')
+        response = self._get(ADMIN_STATS_URL)
 
         self.assertEqual(response.status_code, 403)
 
