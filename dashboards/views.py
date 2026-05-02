@@ -53,6 +53,8 @@ def student_progress_me(request):
 @permission_classes([IsAuthenticated])
 def student_stats(request):
     user = request.user
+    if not request.user.is_authenticated:
+        return Response({"error": "Authentication required."}, status=401)
     if user.role != "student":
         return Response({"detail": "Only students can access this endpoint."}, status=403)
 
