@@ -85,7 +85,7 @@ class AdminUserViewSet(viewsets.ModelViewSet):
     Supports filtering by role, searching by name/email,
     creating users, and deactivating users.
     """
-    queryset = CustomUser.objects.all().order_by('date_joined')
+    queryset = CustomUser.objects.exclude(role='admin').order_by('date_joined')
     serializer_class = AdminUserSerializer
     permission_classes = [permissions.IsAuthenticated,IsAdminUser]
     
