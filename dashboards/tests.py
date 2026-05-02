@@ -708,10 +708,7 @@ class DataIsolationTests(DashboardTestBase):
         response = self._get("/api/logs/")
 
         self.assertEqual(response.status_code, 200)
-<<<<<<< HEAD
-=======
 
->>>>>>> e9a5498d3df2ccc5a0c35f089323618cd2f672a6
         data = response.data if isinstance(response.data, list) else response.data.get("results", [])
         self.assertEqual(len(data), 1)
 
