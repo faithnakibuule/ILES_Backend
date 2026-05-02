@@ -101,6 +101,15 @@ class PlacementSerializer(serializers.ModelSerializer):
             company, _ = Company.objects.get_or_create(name=company_name)
             attrs["company"] = company
 
+        if supervisor and not supervisor.company_id:
+            raise serializers.ValidationError(
+                {
+                    "workplace_supervisor_id": (
+                        "Selected workplace supervisor is not assigned to a company."
+                    )
+                }
+            )
+
         if supervisor and supervisor.company_id != company.id:
             raise serializers.ValidationError(
                 {

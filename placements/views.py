@@ -182,7 +182,11 @@ class CompanyViewSet(viewsets.ModelViewSet):
         )
     ).order_by("name")
     serializer_class = CompanySerializer
-    permission_classes = [permissions.IsAuthenticated]
+
+    def get_permissions(self):
+        if self.action in ["list", "retrieve"]:
+            return [permissions.AllowAny()]
+        return [permissions.IsAuthenticated()]
 
     def get_queryset(self):
         queryset = Company.objects.annotate(

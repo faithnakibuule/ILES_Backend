@@ -47,6 +47,8 @@ def student_progress_me(request):
 
     return Response(data)
 
+
+
 @api_view(["GET"])
 @permission_classes([IsAuthenticated])
 def student_stats(request):
@@ -72,6 +74,7 @@ def student_stats(request):
     return Response(
         {
             "logs_submitted": logs_submitted,
+            "pending_review": pending_review,
             "pending_reviews": pending_review,
             "approved_logs": approved_logs,
             "weeks_remaining": weeks_remaining,

@@ -446,7 +446,7 @@ class AcademicStatsTests(DashboardTestBase):
         log1 = make_log(self.student, self.placement, status="APPROVED")
         log2 = make_log(self.student2, self.placement2, status="APPROVED")
 
-        make_evaluation(log1, self.academic, self.criteria, score=80.60)
+        make_evaluation(log1, self.academic, self.criteria, score=80.0)
         make_evaluation(log2, self.academic, self.criteria, score=60.0)
 
         self._auth(self.academic)
@@ -708,6 +708,10 @@ class DataIsolationTests(DashboardTestBase):
         response = self._get("/api/logs/")
 
         self.assertEqual(response.status_code, 200)
+<<<<<<< HEAD
+=======
+
+>>>>>>> e9a5498d3df2ccc5a0c35f089323618cd2f672a6
         data = response.data if isinstance(response.data, list) else response.data.get("results", [])
         self.assertEqual(len(data), 1)
 

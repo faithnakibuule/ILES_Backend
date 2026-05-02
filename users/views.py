@@ -3,12 +3,13 @@ from rest_framework import generics, permissions
 from rest_framework_simplejwt.views import TokenObtainPairView
 from .serializers import (
     AdminUserSerializer,
+    CourseSerializer,
     CustomTokenObtainPairSerializer,
     CustomUserSerializer,
     RegisterSerializer,
     UserUpdateSerializer,
 )
-from .models import CustomUser
+from .models import Course, CustomUser
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import filters
 from .permissions import IsAdminUser
@@ -67,6 +68,16 @@ class CustomTokenObtainPairView(TokenObtainPairView):# It uses the CustomTokenOb
     serializer_class = CustomTokenObtainPairSerializer
     permission_classes = [permissions.AllowAny]
     throttle_classes = [LoginRateThrottle]
+
+
+class CourseViewSet(viewsets.ModelViewSet):
+    queryset = Course.objects.all().order_by("name")
+    serializer_class = CourseSerializer
+
+    def get_permissions(self):
+        if self.action in ["list", "retrieve"]:
+            return [permissions.AllowAny()]
+        return [permissions.IsAuthenticated(), IsAdminUser()]
 
 class WeeklyLogListView(generics.ListCreateAPIView):
     queryset = []
