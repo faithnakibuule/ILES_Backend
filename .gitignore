@@ -34,4 +34,5 @@ Thumbs.db
 
 # Byte-compiled / optimized files
 *.pyo
-*.pydiles_db
+*.pyd
+iles_db
