@@ -9,13 +9,14 @@ from rest_framework import generics, permissions, viewsets, filters, status
 from rest_framework_simplejwt.views import TokenObtainPairView
 from .serializers import (
     AdminUserSerializer,
+    CourseSerializer,
     CustomTokenObtainPairSerializer,
     CustomUserSerializer,
     RegisterSerializer,
     UserUpdateSerializer,
     MeSerializer,
 )
-from .models import CustomUser
+from .models import Course, CustomUser
 from django_filters.rest_framework import DjangoFilterBackend
 from .permissions import IsAdminUser
 from rest_framework.decorators import action
@@ -69,6 +70,7 @@ class CustomTokenObtainPairView(TokenObtainPairView):# It uses the CustomTokenOb
     permission_classes = [permissions.AllowAny]
     throttle_classes = [LoginRateThrottle]
 
+<<<<<<< HEAD
 class PasswordResetRequestView(APIView):
     permission_classes = [permissions.AllowAny]
 
@@ -118,6 +120,17 @@ class PasswordResetConfirmView(APIView):
             form.save()
             return Response({'detail': 'Password has been reset successfully.'}, status=status.HTTP_200_OK)
         return Response(form.errors, status=status.HTTP_400_BAD_REQUEST)
+=======
+
+class CourseViewSet(viewsets.ModelViewSet):
+    queryset = Course.objects.all().order_by("name")
+    serializer_class = CourseSerializer
+
+    def get_permissions(self):
+        if self.action in ["list", "retrieve"]:
+            return [permissions.AllowAny()]
+        return [permissions.IsAuthenticated(), IsAdminUser()]
+>>>>>>> 688b13faf19d41637d5babd5a9f69b8a72265855
 
 class WeeklyLogListView(generics.ListCreateAPIView):
     queryset = []

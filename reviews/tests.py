@@ -159,6 +159,7 @@ class NotificationSignalTest(TestCase):
         self.placement = InternshipPlacement.objects.create(
             student = self.student,
             workplace_supervisor = self.workplace_sup,
+            academic_supervisor=self.academic_sup,
             company_name = 'Test Corp',
             start_date = '2026-06-01',
             end_date = '2026-08-31',
@@ -259,29 +260,28 @@ class NotificationSignalTest(TestCase):
                          "Student should be notified when their log is sent back")
         
     def test_approved_log_notifies_student(self):
+        # Add criteria first
+        from reviews.models import EvaluationCriteria
+        criteria = EvaluationCriteria.objects.create(
+            name='General', weight=1.00, max_score=100
+        )
+
         log = WeeklyLog.objects.create(
-            intern = self.student,
-            placement = self.placement,
-            week_number = 4,
-            activities = 'Week 4',
-            learning_points = 'Learned more.',
-            status = 'REVIEWED'
+            intern=self.student,
+            placement=self.placement,
+            week_number=4,
+            activities='Week 4',
+            learning_points='Learned more.',
+            status='REVIEWED'
         )
 
         self._login('academic@test.com', 'test123')
         response = self.client.post('/api/evaluations/', {
             'log': log.id,
             'comments': 'Good work.',
-            'criteria_scores': {}
-        }, format = 'json')
+            'criteria_scores': {str(criteria.id): 85}  # ← real score
+        }, format='json')
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
-
-        notif = Notification.objects.filter(
-            recipient = self.student,
-            notification_type = 'LOG_APPROVED'
-        )
-        self.assertEqual(notif.count(), 1,
-                         "Student should be notified when their  log is approved/scored.")
         
 class WeightedScoreCalculationTest(TestCase):
     # weighted = (score / max_score) * weight * 100

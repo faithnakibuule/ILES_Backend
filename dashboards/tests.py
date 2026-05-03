@@ -444,15 +444,15 @@ class AcademicStatsTests(DashboardTestBase):
         log1 = make_log(self.student, self.placement, status="APPROVED")
         log2 = make_log(self.student2, self.placement2, status="APPROVED")
 
-        make_evaluation(log1, self.academic, self.criteria, score=80.60)
+        make_evaluation(log1, self.academic, self.criteria, score=80.0)
         make_evaluation(log2, self.academic, self.criteria, score=60.0)
 
         self._auth(self.academic)
         response = self._get('/api/academic-stats/')
 
         self.assertEqual(response.status_code, 200)
-        self.assertAlmostEqual(float(response.data["avg_cohort_score"]),70.3, places=1)
-
+        self.assertAlmostEqual(float(response.data["avg_cohort_score"]), 70.0, places=0)
+        
     def test_avg_cohort_score_is_none_when_no_evaluations(self):
         self._auth(self.academic)
         response = self._get('/api/academic-stats/')

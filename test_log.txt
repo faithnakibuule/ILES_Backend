@@ -1,0 +1,196 @@
+Creating test database for alias 'default' ('file:memorydb_default?mode=memory&cache=shared')...
+Found 103 test(s).
+Operations to perform:
+  Synchronize unmigrated apps: corsheaders, django_filters, messages, rest_framework, staticfiles
+  Apply all migrations: admin, auth, contenttypes, core, dashboards, logbook, placements, reviews, sessions, token_blacklist, users
+Synchronizing apps without migrations:
+  Creating tables...
+    Running deferred SQL...
+Running migrations:
+  Applying contenttypes.0001_initial... OK
+  Applying contenttypes.0002_remove_content_type_name... OK
+  Applying auth.0001_initial... OK
+  Applying auth.0002_alter_permission_name_max_length... OK
+  Applying auth.0003_alter_user_email_max_length... OK
+  Applying auth.0004_alter_user_username_opts... OK
+  Applying auth.0005_alter_user_last_login_null... OK
+  Applying auth.0006_require_contenttypes_0002... OK
+  Applying auth.0007_alter_validators_add_error_messages... OK
+  Applying auth.0008_alter_user_username_max_length... OK
+  Applying auth.0009_alter_user_last_name_max_length... OK
+  Applying auth.0010_alter_group_name_max_length... OK
+  Applying auth.0011_update_proxy_permissions... OK
+  Applying auth.0012_alter_user_first_name_max_length... OK
+  Applying users.0001_initial... OK
+  Applying admin.0001_initial... OK
+  Applying admin.0002_logentry_remove_auto_add... OK
+  Applying admin.0003_logentry_add_action_flag_choices... OK
+  Applying core.0001_initial... OK
+  Applying core.0002_delete_customuser... OK
+  Applying placements.0001_initial... OK
+  Applying placements.0002_remove_internshipplacement_start_daate_and_more... OK
+  Applying placements.0003_alter_internshipplacement_end_date_and_more... OK
+  Applying logbook.0001_initial... OK
+  Applying logbook.0002_weeklylog_supervisor_comment... OK
+  Applying logbook.0003_alter_weeklylog_status... OK
+  Applying logbook.0004_reviewaction... OK
+  Applying logbook.0005_alter_reviewaction_log_alter_weeklylog_submitted_at... OK
+  Applying logbook.0006_alter_weeklylog_submitted_at... OK
+  Applying logbook.0007_weeklylog_missed_and_relaxed_fields... OK
+  Applying dashboards.0001_initial... OK
+  Applying placements.0004_internshipplacement_academic_supervisor... OK
+  Applying placements.0005_company_internshipplacement_company... OK
+  Applying reviews.0001_initial... OK
+  Applying reviews.0002_reviewaction... OK
+  Applying reviews.0003_notification... OK
+  Applying reviews.0004_evaluation_objectives_rating_recommendation_and_more... OK
+  Applying sessions.0001_initial... OK
+  Applying token_blacklist.0001_initial... OK
+  Applying token_blacklist.0002_outstandingtoken_jti_hex... OK
+  Applying token_blacklist.0003_auto_20171017_2007... OK
+  Applying token_blacklist.0004_auto_20171017_2013... OK
+  Applying token_blacklist.0005_remove_outstandingtoken_jti... OK
+  Applying token_blacklist.0006_auto_20171017_2113... OK
+  Applying token_blacklist.0007_auto_20171017_2214... OK
+  Applying token_blacklist.0008_migrate_to_bigautofield... OK
+  Applying token_blacklist.0010_fix_migrate_to_bigautofield... OK
+  Applying token_blacklist.0011_linearizes_history... OK
+  Applying token_blacklist.0012_alter_outstandingtoken_user... OK
+  Applying token_blacklist.0013_alter_blacklistedtoken_options_and_more... OK
+  Applying users.0002_customuser_academic_supervisor... OK
+  Applying users.0003_remove_customuser_phone... OK
+  Applying users.0004_customuser_phone... OK
+  Applying users.0005_customuser_company...test_avg_cohort_score_is_correct (dashboards.tests.AcademicStatsTests.test_avg_cohort_score_is_correct) ... ok
+test_avg_cohort_score_is_none_when_no_evaluations (dashboards.tests.AcademicStatsTests.test_avg_cohort_score_is_none_when_no_evaluations) ... ok
+test_logs_to_score_counts_reviewed_logs (dashboards.tests.AcademicStatsTests.test_logs_to_score_counts_reviewed_logs) ... ok
+test_student_cannot_access_academic_stats (dashboards.tests.AcademicStatsTests.test_student_cannot_access_academic_stats) ... ok
+test_active_placements_count_is_correct (dashboards.tests.AdminStatsTests.test_active_placements_count_is_correct) ... ok
+test_approved_logs_count_is_correct (dashboards.tests.AdminStatsTests.test_approved_logs_count_is_correct) ... ok
+test_student_cannot_access_admin_stats (dashboards.tests.AdminStatsTests.test_student_cannot_access_admin_stats) ... ok
+test_supervisor_cannot_access_admin_stats (dashboards.tests.AdminStatsTests.test_supervisor_cannot_access_admin_stats) ... ok
+test_total_students_count_is_correct (dashboards.tests.AdminStatsTests.test_total_students_count_is_correct) ... ok
+test_approved_log_count_is_accurate (dashboards.tests.CohortScoresTests.test_approved_log_count_is_accurate) ... ok
+test_results_are_sorted_by_avg_score_descending (dashboards.tests.CohortScoresTests.test_results_are_sorted_by_avg_score_descending) ... ok
+test_returns_one_entry_per_student (dashboards.tests.CohortScoresTests.test_returns_one_entry_per_student) ... ok
+test_logs_endpoint_filters_by_status (dashboards.tests.DashboardFilterTests.test_logs_endpoint_filters_by_status) ... ok
+test_logs_endpoint_filters_by_status_and_supervisor (dashboards.tests.DashboardFilterTests.test_logs_endpoint_filters_by_status_and_supervisor) ... ok
+test_logs_endpoint_filters_by_week_number (dashboards.tests.DashboardFilterTests.test_logs_endpoint_filters_by_week_number) ... ok
+test_student_cannot_retrieve_another_students_log_by_id (dashboards.tests.DataIsolationTests.test_student_cannot_retrieve_another_students_log_by_id) ... ok
+test_student_cannot_see_another_students_logs (dashboards.tests.DataIsolationTests.test_student_cannot_see_another_students_logs) ... ok
+test_student_cannot_see_evaluations_belonging_to_another_student (dashboards.tests.DataIsolationTests.test_student_cannot_see_evaluations_belonging_to_another_student) ... ok
+test_workplace_supervisor_cannot_see_unassigned_interns_logs (dashboards.tests.DataIsolationTests.test_workplace_supervisor_cannot_see_unassigned_interns_logs) ... ok
+test_date_range_filter_excludes_outside_range (dashboards.tests.LogFilterTests.test_date_range_filter_excludes_outside_range) ... ok
+test_date_range_filter_includes_today (dashboards.tests.LogFilterTests.test_date_range_filter_includes_today) ... ok
+test_filter_logs_by_status_approved (dashboards.tests.LogFilterTests.test_filter_logs_by_status_approved) ... ok
+test_filter_logs_by_status_draft (dashboards.tests.LogFilterTests.test_filter_logs_by_status_draft) ... ok
+test_filter_logs_by_status_submitted (dashboards.tests.LogFilterTests.test_filter_logs_by_status_submitted) ... ok
+test_filter_logs_by_week_number (dashboards.tests.LogFilterTests.test_filter_logs_by_week_number) ... ok
+test_search_logs_by_intern_email (dashboards.tests.LogFilterTests.test_search_logs_by_intern_email) ... ok
+test_search_logs_by_intern_name (dashboards.tests.LogFilterTests.test_search_logs_by_intern_name) ... ok
+test_student_cannot_see_other_student_logs (dashboards.tests.LogFilterTests.test_student_cannot_see_other_student_logs) ... ok
+test_returns_correct_counts_per_week (dashboards.tests.LogsPerWeekTests.test_returns_correct_counts_per_week) ... ok
+test_student_cannot_access_this_endpoint (dashboards.tests.LogsPerWeekTests.test_student_cannot_access_this_endpoint) ... ok
+test_weeks_with_no_logs_are_excluded (dashboards.tests.LogsPerWeekTests.test_weeks_with_no_logs_are_excluded) ... ok
+test_all_four_statuses_are_counted_correctly (dashboards.tests.StatusDistributionTests.test_all_four_statuses_are_counted_correctly) ... ok
+test_statuses_with_zero_logs_are_excluded (dashboards.tests.StatusDistributionTests.test_statuses_with_zero_logs_are_excluded) ... ok
+test_approved_log_includes_score (dashboards.tests.StudentProgressTests.test_approved_log_includes_score) ... ok
+test_returns_all_log_for_student (dashboards.tests.StudentProgressTests.test_returns_all_log_for_student) ... ok
+test_returns_ordered_by_week_number (dashboards.tests.StudentProgressTests.test_returns_ordered_by_week_number) ... ok
+test_student_cannot_access_another_student_progress (dashboards.tests.StudentProgressTests.test_student_cannot_access_another_student_progress) ... ok
+test_unapproved_log_has_null_score (dashboards.tests.StudentProgressTests.test_unapproved_log_has_null_score) ... ok
+test_requires_authentication (dashboards.tests.StudentStatsTests.test_requires_authentication) ... ok
+test_returns_correct_pending_reviews_count (dashboards.tests.StudentStatsTests.test_returns_correct_pending_reviews_count) ... ok
+test_returns_correct_submitted_count (dashboards.tests.StudentStatsTests.test_returns_correct_submitted_count) ... ok
+test_returns_zero_counts_for_fresh_student (dashboards.tests.StudentStatsTests.test_returns_zero_counts_for_fresh_student) ... ok
+test_student_only_sees_own_status (dashboards.tests.StudentStatsTests.test_student_only_sees_own_status) ... ok
+test_pending_reviews_count_is_correct (dashboards.tests.WorkplaceStatsTests.test_pending_reviews_count_is_correct) ... ok
+test_student_cannot_access_workplace_stats (dashboards.tests.WorkplaceStatsTests.test_student_cannot_access_workplace_stats) ... ok
+test_supervisor_only_sees_own_stats (dashboards.tests.WorkplaceStatsTests.test_supervisor_only_sees_own_stats) ... ok
+test_total_interns_reflects_active_placements (dashboards.tests.WorkplaceStatsTests.test_total_interns_reflects_active_placements) ... ok
+test_expired_complete_draft_is_auto_submitted (logbook.tests.StudentWeeklyLogbookTests.test_expired_complete_draft_is_auto_submitted) ... ok
+test_expired_incomplete_draft_is_marked_missed (logbook.tests.StudentWeeklyLogbookTests.test_expired_incomplete_draft_is_marked_missed) ... ok
+test_no_active_placement_blocks_form_access (logbook.tests.StudentWeeklyLogbookTests.test_no_active_placement_blocks_form_access) ... ok
+test_student_can_submit_when_required_fields_are_complete (logbook.tests.StudentWeeklyLogbookTests.test_student_can_submit_when_required_fields_are_complete) ... ok
+test_student_cannot_create_second_log_for_same_current_week (logbook.tests.StudentWeeklyLogbookTests.test_student_cannot_create_second_log_for_same_current_week) ... ok
+test_student_cannot_submit_with_missing_required_fields (logbook.tests.StudentWeeklyLogbookTests.test_student_cannot_submit_with_missing_required_fields) ... ok
+test_student_creates_draft_without_sending_placement_or_week (logbook.tests.StudentWeeklyLogbookTests.test_student_creates_draft_without_sending_placement_or_week) ... ok
+test_student_summary_reports_missed_previous_weeks (logbook.tests.StudentWeeklyLogbookTests.test_student_summary_reports_missed_previous_weeks) ... ok
+test_admin_can_cancel_placement_with_confirmation (placements.tests.PlacementPermissionTests.test_admin_can_cancel_placement_with_confirmation) ... ok
+test_admin_can_create_placement (placements.tests.PlacementPermissionTests.test_admin_can_create_placement) ... ok
+test_date_validation_rejects_invalid_range (placements.tests.PlacementPermissionTests.test_date_validation_rejects_invalid_range) ... ok
+test_missing_student_in_creation (placements.tests.PlacementPermissionTests.test_missing_student_in_creation) ... ok
+test_student_can_only_see_own_placement (placements.tests.PlacementPermissionTests.test_student_can_only_see_own_placement) ... ok
+test_student_cannot_create_placement (placements.tests.PlacementPermissionTests.test_student_cannot_create_placement) ... ok
+test_student_cannot_receive_second_active_or_completed_placement (placements.tests.PlacementPermissionTests.test_student_cannot_receive_second_active_or_completed_placement) ... ok
+test_update_status_transition (placements.tests.PlacementPermissionTests.test_update_status_transition) ... ok
+test_academic_supervisor_cannot_score_submitted_log (reviews.tests.EvaluationTest.test_academic_supervisor_cannot_score_submitted_log) ... ok
+test_score_calculation_uses_criteria_weights (reviews.tests.EvaluationTest.test_score_calculation_uses_criteria_weights) ... ok
+test_student_cannot_see_other_students_evaluation (reviews.tests.EvaluationTest.test_student_cannot_see_other_students_evaluation) ... ok
+test_approved_log_notifies_student (reviews.tests.NotificationSignalTest.test_approved_log_notifies_student) ... ok
+test_mark_notification_as_read_decreases_unread_count (reviews.tests.NotificationSignalTest.test_mark_notification_as_read_decreases_unread_count) ... ok
+test_reviewed_log_notifies_academic_supervisor (reviews.tests.NotificationSignalTest.test_reviewed_log_notifies_academic_supervisor) ... ok
+test_sent_back_back_log_notifies_student (reviews.tests.NotificationSignalTest.test_sent_back_back_log_notifies_student) ... ok
+test_submit_log_creates_notification_for_workplace_supervisor (reviews.tests.NotificationSignalTest.test_submit_log_creates_notification_for_workplace_supervisor) ... ok
+test_approved_log_cannot_be_sorted_again (reviews.tests.RolePermissionScoringTest.test_approved_log_cannot_be_sorted_again) ... ok
+test_draft_log_cannot_be_sorted (reviews.tests.RolePermissionScoringTest.test_draft_log_cannot_be_sorted) ... ok
+test_log_status_becomes_approved_after_scoring (reviews.tests.RolePermissionScoringTest.test_log_status_becomes_approved_after_scoring) ... ok
+test_student_cannot_create_evaluation (reviews.tests.RolePermissionScoringTest.test_student_cannot_create_evaluation) ... ok
+test_unauthenticated_request_is_rejected (reviews.tests.RolePermissionScoringTest.test_unauthenticated_request_is_rejected) ... ok
+test_workplace_supervisor_cannot_create_evaluation (reviews.tests.RolePermissionScoringTest.test_workplace_supervisor_cannot_create_evaluation) ... ok
+test_api_student_only_sees_own_evaluations (reviews.tests.ScoreAggregationPerStudentTest.test_api_student_only_sees_own_evaluations)
+Via the API a student must only receive their own evaluations. ... ok
+test_average_score_across_logs (reviews.tests.ScoreAggregationPerStudentTest.test_average_score_across_logs) ... ok
+test_multiple_logs_for_one_student_all_stored (reviews.tests.ScoreAggregationPerStudentTest.test_multiple_logs_for_one_student_all_stored)
+All evaluations for a student are retrievable . ... ok
+test_scores_isolated_between_students (reviews.tests.ScoreAggregationPerStudentTest.test_scores_isolated_between_students)
+Student B's evaluations must not appear in Student A's queryset. ... ok
+test_student_with_no_evaluations_returns_empty (reviews.tests.ScoreAggregationPerStudentTest.test_student_with_no_evaluations_returns_empty)
+A student who has never been scored returns an empty queryset. ... ok
+test_total_score_sum_per_student (reviews.tests.ScoreAggregationPerStudentTest.test_total_score_sum_per_student) ... ok
+test_no_duplicate_notifications_on_single_scoring (reviews.tests.ScoringNotificationTest.test_no_duplicate_notifications_on_single_scoring)
+A single scoring event must not create more than one LOG_APPROVED notification. ... ok
+test_notification_created_when_log_is_scored (reviews.tests.ScoringNotificationTest.test_notification_created_when_log_is_scored)
+Scoring a log must produce a notification for the student. ... ok
+test_notification_is_unread_by_default (reviews.tests.ScoringNotificationTest.test_notification_is_unread_by_default)
+Newly created scoring notification must default to is_read=False. ... ok
+test_notification_message_mentions_week_number (reviews.tests.ScoringNotificationTest.test_notification_message_mentions_week_number)
+Notification message should reference the correct week number. ... ok
+test_notification_type_is_log_approved (reviews.tests.ScoringNotificationTest.test_notification_type_is_log_approved)
+The notification fired on scoring must have type LOG_APPROVED. ... ok
+test_scoring_does_not_notify_wrong_student (reviews.tests.ScoringNotificationTest.test_scoring_does_not_notify_wrong_student)
+Another student's inbox must remain empty after this scoring. ... ok
+test_heavy_criterion_full_light_criterion_zero (reviews.tests.WeightedScoreCalculationTest.test_heavy_criterion_full_light_criterion_zero) ... ok
+test_negative_score_is_rejected (reviews.tests.WeightedScoreCalculationTest.test_negative_score_is_rejected)
+Negative scores must be rejected. ... ok
+test_non_existent_criterion_is_rejected (reviews.tests.WeightedScoreCalculationTest.test_non_existent_criterion_is_rejected) ... ok
+test_partial_scores_weighted_correctly (reviews.tests.WeightedScoreCalculationTest.test_partial_scores_weighted_correctly) ... ok
+test_perfect_scores_give_100 (reviews.tests.WeightedScoreCalculationTest.test_perfect_scores_give_100) ... ok
+test_score_above_max_is_rejected (reviews.tests.WeightedScoreCalculationTest.test_score_above_max_is_rejected)
+Submitting a score higher than max_score must be rejected . ... ok
+test_login_with_wrong_password_returns_401 (users.tests.AuthAPITests.test_login_with_wrong_password_returns_401) ... ok
+test_me_requires_authentication (users.tests.AuthAPITests.test_me_requires_authentication) ... ok
+test_me_returns_user_data_when_authenticated (users.tests.AuthAPITests.test_me_returns_user_data_when_authenticated) ... ok
+test_register_duplicate_email (users.tests.AuthAPITests.test_register_duplicate_email) ... ok
+test_register_with_mismatched_passwords_returns_400 (users.tests.AuthAPITests.test_register_with_mismatched_passwords_returns_400) ... ok
+test_register_with_valid_data_returns_201 (users.tests.AuthAPITests.test_register_with_valid_data_returns_201) ... ok
+test_token_refresh_returns_new_access_token (users.tests.AuthAPITests.test_token_refresh_returns_new_access_token) ... ok
+test_token_refresh_with_invalid_token_returns_401 (users.tests.AuthAPITests.test_token_refresh_with_invalid_token_returns_401) ... ok
+
+----------------------------------------------------------------------
+Ran 103 tests in 327.863s
+
+OK
+Destroying test database for alias 'default' ('file:memorydb_default?mode=memory&cache=shared')...
+ OK
+System check identified no issues (0 silenced).
+
+DEBUG: URL used is /api/dashboards/admin-stats/
+DEBUG: Status Code is 200
+DEBUG: Data returned is {'total_students': 2, 'active_placements': 2, 'active_internships': 2, 'completed_placements': 0, 'completed_internships': 0, 'total_logs': 0, 'approved_logs': 0, 'total_companies': 0, 'pending_evaluations': 0, 'total_workplace_supervisors': 1, 'total_academic_supervisors': 1}
+
+DEBUG: the URL according to Django is:/api/admin-stats/
+
+Cohort scores response: [{'id': 1, 'student_name': 'Test Studentihf85o', 'company': 'Test Company Ltd', 'avg_score': 0, 'approved_logs': 2, 'total_logs': 3, 'status': 'ACTIVE'}, {'id': 2, 'student_name': 'Test Studentfrlvuv', 'company': 'Test Company Ltd', 'avg_score': 0, 'approved_logs': 0, 'total_logs': 0, 'status': 'ACTIVE'}]
+
+Student stats keys: ['logs_submitted', 'pending_reviews', 'approved_logs', 'weeks_remaining', 'overdue_logs']
+Student stats data: {'logs_submitted': 2, 'pending_reviews': 2, 'approved_logs': 0, 'weeks_remaining': 13, 'overdue_logs': 0}

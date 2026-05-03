@@ -49,7 +49,8 @@ def student_progress_me(request):
 
 
 
-@api_view(['GET'])
+@api_view(["GET"])
+@permission_classes([IsAuthenticated])
 def student_stats(request):
     user = request.user
     if not request.user.is_authenticated:
@@ -74,6 +75,7 @@ def student_stats(request):
         {
             "logs_submitted": logs_submitted,
             "pending_review": pending_review,
+            "pending_reviews": pending_review,
             "approved_logs": approved_logs,
             "weeks_remaining": weeks_remaining,
             "overdue_logs": overdue_logs,
