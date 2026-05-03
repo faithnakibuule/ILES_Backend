@@ -63,7 +63,7 @@ class LogViewSet(viewsets.ModelViewSet):
 
         if user.role == "academic_supervisor":
             my_students = user.supervisor_students.all()
-            return base.filter(intern__in=my_students, status="REVIEWED")
+            return base.filter(intern__in=my_students, status__in=["REVIEWED", "APPROVED"])
 
         return WeeklyLog.objects.none()
 
@@ -247,4 +247,22 @@ class LogViewSet(viewsets.ModelViewSet):
             },
             status=status.HTTP_200_OK,
         )
+
+    @action(detail=True, methods=["post"], permission_classes=[IsAuthenticated])
+    def approve(self, request, pk=None):
+        log = self.get_object()
+
+        if log.status != "REVIEWED":
+            raise ValidationError("Only reviewed logs can be approved.")
+        
+        log.status = "APPROVED"
+        log.save(update_fields=["status"])
+
+        ReviewAction.objects.create(
+            log=log,
+            action_by=request.user,
+            action="APPROVED",
+            comment="Log officially approved",
+        )
+        return Response({"message": "Log status updated to APPROVED."})
 

@@ -152,9 +152,14 @@ def get_missed_week_numbers(student, placement=None, current_date=None):
 
 
 def build_student_logbook_summary(student, current_date=None):
+    from .models import WeeklyLog  # Import here to avoid circular imports
+    
     placement, current_week, current_log = get_current_week_log(
         student, current_date=current_date
     )
+
+    # Fetch all logs for this student to calculate stats
+    all_logs = WeeklyLog.objects.filter(intern=student)
 
     if not placement:
         return {
@@ -164,7 +169,23 @@ def build_student_logbook_summary(student, current_date=None):
             "current_log_id": None,
             "current_week_deadline": None,
             "missed_weeks": [],
+            "stats": {
+                "draft": 0,
+                "submitted": 0,
+                "reviewed": 0,
+                "approved": 0,
+                "total": 0
+            }
         }
+
+    # Generate stats for the dashboard
+    stats = {
+        "draft": all_logs.filter(status="DRAFT").count(),
+        "submitted": all_logs.filter(status="SUBMITTED").count(),
+        "reviewed": all_logs.filter(status="REVIEWED").count(),
+        "approved": all_logs.filter(status="APPROVED").count(),
+        "total": all_logs.count(),
+    }
 
     return {
         "has_active_placement": True,
@@ -175,4 +196,5 @@ def build_student_logbook_summary(student, current_date=None):
         "missed_weeks": get_missed_week_numbers(
             student, placement=placement, current_date=current_date
         ),
+        "stats": stats,  # <--- New data for your dashboard
     }

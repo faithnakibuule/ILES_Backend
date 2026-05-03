@@ -106,6 +106,13 @@ class LogReviewSerializer(serializers.Serializer):
         help_text="Comment from supervisor explaining the review decision.",
     )
 
+class LogStatsSerializer(serializers.Serializer):
+    draft = serializers.IntegerField()
+    submitted = serializers.IntegerField()
+    reviewed = serializers.IntegerField()
+    approved = serializers.IntegerField()
+    total = serializers.IntegerField()
+
 
 class StudentLogbookSummarySerializer(serializers.Serializer):
     has_active_placement = serializers.BooleanField()
@@ -114,6 +121,7 @@ class StudentLogbookSummarySerializer(serializers.Serializer):
     current_log_id = serializers.IntegerField(allow_null=True)
     current_week_deadline = serializers.DateTimeField(allow_null=True)
     missed_weeks = serializers.ListField(child=serializers.IntegerField())
+    stats = LogStatsSerializer()
 
     def get_placement(self, obj):
         placement = obj.get("placement")
