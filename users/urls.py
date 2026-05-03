@@ -1,20 +1,11 @@
 from django.urls import include, path
 from rest_framework_simplejwt.views import TokenRefreshView
 
-<<<<<<< HEAD
-from .views import (
-    CustomTokenObtainPairView,
-    MeView,
-    RegisterView,
-    UserStatsView,
-    PasswordResetRequestView,
-    PasswordResetConfirmView,
-)
-=======
 
-from .views import CourseViewSet, CustomTokenObtainPairView, MeView, RegisterView, UserStatsView
->>>>>>> 688b13faf19d41637d5babd5a9f69b8a72265855
+
+from .views import CourseViewSet, CustomTokenObtainPairView, MeView, RegisterView, UserStatsView, PasswordResetRequestView, PasswordResetConfirmView
 from rest_framework.routers import DefaultRouter
+
 
 router = DefaultRouter()
 router.register(r'courses', CourseViewSet, basename='course')
@@ -32,12 +23,8 @@ urlpatterns =[
     path('password_reset/confirm/', PasswordResetConfirmView.as_view(), name='password_reset_confirm'),
     path('admin-stats/', UserStatsView.as_view(), name='admin_stats'),
     path('me/', MeView.as_view(), name='me'),
-<<<<<<< HEAD
-]
-=======
     path('', include(router.urls)),
     
     
     
 ]
->>>>>>> 688b13faf19d41637d5babd5a9f69b8a72265855

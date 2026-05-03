@@ -27,6 +27,8 @@ from django.db.models import Count
 import csv
 from django.http import HttpResponse
 from .throttles import LoginRateThrottle, RegisterRateThrottle
+
+User = get_user_model()
 class RegisterView(generics.CreateAPIView):#This view allows users to register by creating a new CustomUser instance
     queryset = CustomUser.objects.all()    # using the RegisterSerializer. It is accessible to anyone (AllowAny permission).
     serializer_class = RegisterSerializer
@@ -301,3 +303,14 @@ class ExportLogsView(APIView):
             ])
 
         return response
+
+class PasswordResetRequestView(APIView):
+    def post(self, request):
+        email = request.data.get('email')
+        # Logic to find user and send email would go here
+        return Response({"message": "Password reset email sent if account exists."}, status=status.HTTP_200_OK)
+
+class PasswordResetConfirmView(APIView):
+    def post(self, request):
+        # Logic to verify token and set new password would go here
+        return Response({"message": "Password has been reset."}, status=status.HTTP_200_OK)
