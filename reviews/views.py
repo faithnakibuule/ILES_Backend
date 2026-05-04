@@ -12,6 +12,7 @@ from django_filters.rest_framework import DjangoFilterBackend
 from logbook.models import WeeklyLog
 
 from .models import Evaluation, EvaluationCriteria, Notification, ReviewAction
+from .services import ensure_default_evaluation_criteria
 from .serializers import (
     EvaluationCriteriaSerializer,
     EvaluationSerializer,
@@ -211,7 +212,10 @@ class EvaluationViewSet(viewsets.ModelViewSet):
 
 
 class CriteriaViewSet(viewsets.ReadOnlyModelViewSet):
-    queryset = EvaluationCriteria.objects.all().order_by("id")
     serializer_class = EvaluationCriteriaSerializer
     permission_classes = [IsAuthenticated]
+
+    def get_queryset(self):
+        ensure_default_evaluation_criteria()
+        return EvaluationCriteria.objects.all().order_by("id")
 

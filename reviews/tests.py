@@ -766,4 +766,28 @@ class ScoringNotificationTest(TestCase):
         count = Notification.objects.filter(recipient=other_student).count()
         self.assertEqual(count, 0,
             msg="Scoring one student's log must not create notifications for other students")
- 
+
+
+class CriteriaBootstrapTest(TestCase):
+    def setUp(self):
+        self.client = APIClient()
+        self.user = User.objects.create_user(
+            email="criteria@test.com",
+            password="test123",
+            first_name="Criteria",
+            last_name="Supervisor",
+            role="academic_supervisor",
+        )
+        self.client.force_authenticate(user=self.user)
+
+    def test_criteria_endpoint_bootstraps_default_rubric(self):
+        EvaluationCriteria.objects.all().delete()
+
+        response = self.client.get("/api/reviews/criteria/")
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        payload = response.data.get("results", response.data)
+        self.assertEqual(len(payload), 6)
+        names = [item["name"] for item in payload]
+        self.assertIn("Willingness to Learn", names)
+        self.assertIn("Problem Solving", names)
