@@ -81,6 +81,10 @@ class PlacementSerializer(serializers.ModelSerializer):
     def validate(self, attrs):
         instance = getattr(self, "instance", None)
         student = attrs.get("student", getattr(instance, "student", None))
+        academic_supervisor = attrs.get(
+            "academic_supervisor",
+            getattr(instance, "academic_supervisor", None),
+        )
         supervisor = attrs.get(
             "workplace_supervisor",
             getattr(instance, "workplace_supervisor", None),
@@ -90,6 +94,27 @@ class PlacementSerializer(serializers.ModelSerializer):
         start_date = attrs.get("start_date", getattr(instance, "start_date", None))
         end_date = attrs.get("end_date", getattr(instance, "end_date", None))
         incoming_status = self.initial_data.get("status") if hasattr(self, "initial_data") else None
+
+        if instance:
+            immutable_fields = {
+                "student": "student",
+                "workplace_supervisor": "workplace supervisor",
+                "academic_supervisor": "academic supervisor",
+                "company": "company",
+            }
+            changed_fields = []
+            for field_name, label in immutable_fields.items():
+                if field_name in attrs and attrs.get(field_name) != getattr(instance, field_name):
+                    changed_fields.append(label)
+
+            if changed_fields:
+                raise serializers.ValidationError(
+                    {
+                        "detail": (
+                            "Once a placement is assigned, only the start and end dates can be adjusted."
+                        )
+                    }
+                )
 
         if start_date and end_date and start_date >= end_date:
             raise serializers.ValidationError("End date must be after start date.")
@@ -117,6 +142,39 @@ class PlacementSerializer(serializers.ModelSerializer):
                 {
                     "workplace_supervisor_id": (
                         "Selected workplace supervisor is not assigned to that company."
+                    )
+                }
+            )
+
+        if student and not getattr(student, "course_id", None):
+            raise serializers.ValidationError(
+                {
+                    "student_id": (
+                        "Selected student must be assigned to a course before creating a placement."
+                    )
+                }
+            )
+
+        if academic_supervisor and not getattr(academic_supervisor, "college_id", None):
+            raise serializers.ValidationError(
+                {
+                    "academic_supervisor_id": (
+                        "Selected academic supervisor must be assigned to a college."
+                    )
+                }
+            )
+
+        if (
+            student
+            and academic_supervisor
+            and getattr(student, "course_id", None)
+            and getattr(student.course, "college_id", None)
+            and academic_supervisor.college_id != student.course.college_id
+        ):
+            raise serializers.ValidationError(
+                {
+                    "academic_supervisor_id": (
+                        "Selected academic supervisor does not belong to the student's college."
                     )
                 }
             )

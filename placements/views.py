@@ -7,8 +7,8 @@ from rest_framework.exceptions import PermissionDenied, ValidationError
 from rest_framework.response import Response
 
 from logbook.models import WeeklyLog
-from users.models import CustomUser
-from users.serializers import CustomUserSerializer
+from users.models import College, Course, CustomUser
+from users.serializers import CollegeSerializer, CourseSerializer, CustomUserSerializer
 
 from .models import Company, InternshipPlacement
 from .serializers import CompanySerializer, PlacementSerializer
@@ -106,16 +106,38 @@ class PlacementViewSet(viewsets.ModelViewSet):
         if request.user.role != "admin":
             raise PermissionDenied("Only admins can access placement options.")
 
+        college_id = request.query_params.get("college_id")
+        course_id = request.query_params.get("course_id")
         company_id = request.query_params.get("company_id")
-        students = CustomUser.objects.filter(role="student", is_active=True).order_by(
+        students = CustomUser.objects.filter(role="student", is_active=True).select_related(
+            "course__college"
+        ).order_by(
             "first_name", "last_name", "email"
         )
         academics = CustomUser.objects.filter(
             role="academic_supervisor", is_active=True
+        ).select_related(
+            "college"
         ).order_by("first_name", "last_name", "email")
         supervisors = CustomUser.objects.filter(
             role="workplace_supervisor", is_active=True
         ).select_related("company")
+        courses = Course.objects.select_related("college").order_by("name")
+        colleges = College.objects.annotate(
+            academic_supervisor_count=Count(
+                "academic_supervisors",
+                filter=Q(academic_supervisors__role="academic_supervisor"),
+            ),
+            course_count=Count("courses", distinct=True),
+        ).order_by("name")
+
+        if college_id:
+            academics = academics.filter(college_id=college_id)
+            courses = courses.filter(college_id=college_id)
+            students = students.filter(course__college_id=college_id)
+
+        if course_id:
+            students = students.filter(course_id=course_id)
 
         if company_id:
             supervisors = supervisors.filter(company_id=company_id)
@@ -127,6 +149,8 @@ class PlacementViewSet(viewsets.ModelViewSet):
                 "students": CustomUserSerializer(students, many=True).data,
                 "academic_supervisors": CustomUserSerializer(academics, many=True).data,
                 "workplace_supervisors": CustomUserSerializer(supervisors, many=True).data,
+                "colleges": CollegeSerializer(colleges, many=True).data,
+                "courses": CourseSerializer(courses, many=True).data,
                 "companies": CompanySerializer(
                     Company.objects.annotate(
                         supervisor_count=Count(

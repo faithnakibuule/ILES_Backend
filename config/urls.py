@@ -1,8 +1,18 @@
 from django.contrib import admin
 from django.urls import path, include
-from users.views import CourseViewSet
+from users.views import CollegeViewSet, CourseViewSet
 import django.contrib.auth.views as auth_views
 
+college_list = CollegeViewSet.as_view({
+    'get': 'list',
+    'post': 'create',
+})
+college_detail = CollegeViewSet.as_view({
+    'get': 'retrieve',
+    'put': 'update',
+    'patch': 'partial_update',
+    'delete': 'destroy',
+})
 course_list = CourseViewSet.as_view({
     'get': 'list',
     'post': 'create',
@@ -23,6 +33,8 @@ urlpatterns = [
     path('api/reset/done/', auth_views.PasswordResetCompleteView.as_view(), name='password_reset_complete'),
 
     path('api/auth/', include('users.urls')),
+    path('api/colleges/', college_list, name='college-list'),
+    path('api/colleges/<int:pk>/', college_detail, name='college-detail'),
     path('api/courses/', course_list, name='course-list'),
     path('api/courses/<int:pk>/', course_detail, name='course-detail'),
     path('api/admin/', include('users.admin_urls')),

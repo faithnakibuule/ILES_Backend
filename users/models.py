@@ -3,8 +3,26 @@ from django.contrib.auth.models import AbstractUser,BaseUserManager
 
 # Create your models here.
 
+class College(models.Model):
+    name = models.CharField(max_length=255, unique=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ["name"]
+
+    def __str__(self):
+        return self.name
+
 class Course(models.Model):
     name = models.CharField(max_length=255, unique=True)
+    college = models.ForeignKey(
+        "College",
+        on_delete=models.PROTECT,
+        null=True,
+        blank=True,
+        related_name="courses",
+    )
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
@@ -72,6 +90,13 @@ class CustomUser(AbstractUser):
         blank=True,
         related_name='students',
         limit_choices_to={'role': 'student'},
+    )
+    college = models.ForeignKey(
+        'College',
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='academic_supervisors',
     )
 
     USERNAME_FIELD = 'email'

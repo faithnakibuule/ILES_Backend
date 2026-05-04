@@ -9,6 +9,7 @@ from rest_framework import generics, permissions, viewsets, filters, status
 from rest_framework_simplejwt.views import TokenObtainPairView
 from .serializers import (
     AdminUserSerializer,
+    CollegeSerializer,
     CourseSerializer,
     CustomTokenObtainPairSerializer,
     CustomUserSerializer,
@@ -16,14 +17,15 @@ from .serializers import (
     UserUpdateSerializer,
     MeSerializer,
 )
-from .models import Course, CustomUser
+from .models import College, Course, CustomUser
 from django_filters.rest_framework import DjangoFilterBackend
 from .permissions import IsAdminUser
 from rest_framework.decorators import action
 from rest_framework.views import APIView
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
-from django.db.models import Count
+from django.db.models import Count, Q
+from django.db.models import ProtectedError
 import csv
 from django.http import HttpResponse
 from .throttles import LoginRateThrottle, RegisterRateThrottle
@@ -75,13 +77,70 @@ class CustomTokenObtainPairView(TokenObtainPairView):# It uses the CustomTokenOb
 
 
 class CourseViewSet(viewsets.ModelViewSet):
-    queryset = Course.objects.all().order_by("name")
+    queryset = Course.objects.select_related("college").all().order_by("name")
     serializer_class = CourseSerializer
 
     def get_permissions(self):
         if self.action in ["list", "retrieve"]:
             return [permissions.AllowAny()]
         return [permissions.IsAuthenticated(), IsAdminUser()]
+
+    def get_queryset(self):
+        queryset = Course.objects.select_related("college").order_by("name")
+        college_id = self.request.query_params.get("college_id")
+        if college_id:
+            queryset = queryset.filter(college_id=college_id)
+        return queryset
+
+    def destroy(self, request, *args, **kwargs):
+        course = self.get_object()
+        if course.students.exists():
+            return Response(
+                {"message": "This course cannot be deleted because students are still assigned to it."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+        return super().destroy(request, *args, **kwargs)
+
+
+class CollegeViewSet(viewsets.ModelViewSet):
+    serializer_class = CollegeSerializer
+
+    def get_permissions(self):
+        if self.action in ["list", "retrieve"]:
+            return [permissions.AllowAny()]
+        return [permissions.IsAuthenticated(), IsAdminUser()]
+
+    def get_queryset(self):
+        return College.objects.annotate(
+            academic_supervisor_count=Count(
+                "academic_supervisors",
+                filter=Q(academic_supervisors__role="academic_supervisor"),
+            ),
+            course_count=Count("courses", distinct=True),
+        ).order_by("name")
+
+    def destroy(self, request, *args, **kwargs):
+        college = self.get_object()
+        has_academics = college.academic_supervisors.filter(role="academic_supervisor").exists()
+        has_courses = college.courses.exists()
+        if has_academics or has_courses:
+            message = "This college cannot be deleted because it still has "
+            reasons = []
+            if has_academics:
+                reasons.append("academic supervisors assigned to it")
+            if has_courses:
+                reasons.append("courses linked to it")
+            return Response(
+                {"message": f"{message}{' and '.join(reasons)}."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+        try:
+            return super().destroy(request, *args, **kwargs)
+        except ProtectedError:
+            return Response(
+                {"message": "This college cannot be deleted because related records still depend on it."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
 
 class WeeklyLogListView(generics.ListCreateAPIView):
     queryset = []
@@ -114,7 +173,7 @@ class AdminUserViewSet(viewsets.ModelViewSet):
     ordering_fields = ['date_joined', 'first_name', 'last_name', 'email']
 
     def get_queryset(self):
-        queryset = super().get_queryset().select_related("company")
+        queryset = super().get_queryset().select_related("company", "course__college", "college")
         company_id = self.request.query_params.get("company_id")
         if company_id:
             queryset = queryset.filter(company_id=company_id)

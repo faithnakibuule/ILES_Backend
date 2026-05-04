@@ -3,11 +3,12 @@ from rest_framework_simplejwt.views import TokenRefreshView
 
 
 
-from .views import CourseViewSet, CustomTokenObtainPairView, MeView, RegisterView, UserStatsView, PasswordResetRequestView, PasswordResetConfirmView
+from .views import CollegeViewSet, CourseViewSet, CustomTokenObtainPairView, MeView, RegisterView, UserStatsView, PasswordResetRequestView, PasswordResetConfirmView
 from rest_framework.routers import DefaultRouter
 
 
 router = DefaultRouter()
+router.register(r'colleges', CollegeViewSet, basename='college')
 router.register(r'courses', CourseViewSet, basename='course')
 
 # nothing has to be registered here — each ViewSet lives in its own app's urls.py
