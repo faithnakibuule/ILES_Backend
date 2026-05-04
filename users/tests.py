@@ -1,6 +1,8 @@
 from django.test import TestCase
+from django.test import override_settings
 from rest_framework.test import APIClient
 from rest_framework import status
+from unittest.mock import patch
 from users.models import Course, CustomUser
 
 class AuthAPITests(TestCase):
@@ -251,5 +253,51 @@ class CourseAdminAPITests(TestCase):
             [course["name"] for course in results],
             ["Data Science", "Software Engineering"],
         )
-        
-        
+
+
+class PasswordResetAPITests(TestCase):
+    def setUp(self):
+        self.client = APIClient()
+        self.user = CustomUser.objects.create_user(
+            email="resetme@test.com",
+            password="StrongPass123!",
+            role="student",
+            first_name="Reset",
+            last_name="User",
+        )
+
+    @override_settings(FRONTEND_URL="http://localhost:5173")
+    @patch("users.email_utils.send_mail")
+    def test_password_reset_request_sends_email_with_frontend_link(self, mock_send_mail):
+        response = self.client.post(
+            "/api/auth/password_reset/",
+            {"email": "resetme@test.com"},
+            format="json",
+        )
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        mock_send_mail.assert_called_once()
+        self.assertIn("/reset-password?uid=", mock_send_mail.call_args.kwargs["message"])
+
+    def test_password_reset_confirm_updates_password(self):
+        from django.contrib.auth.tokens import default_token_generator
+        from django.utils.encoding import force_bytes
+        from django.utils.http import urlsafe_base64_encode
+
+        uid = urlsafe_base64_encode(force_bytes(self.user.pk))
+        token = default_token_generator.make_token(self.user)
+
+        response = self.client.post(
+            "/api/auth/password_reset/confirm/",
+            {
+                "uid": uid,
+                "token": token,
+                "new_password": "NewStrongPass123!",
+                "new_password_confirm": "NewStrongPass123!",
+            },
+            format="json",
+        )
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.user.refresh_from_db()
+        self.assertTrue(self.user.check_password("NewStrongPass123!"))

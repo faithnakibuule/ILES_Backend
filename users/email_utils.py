@@ -1,5 +1,5 @@
-from django.core.mail import send_mail
 from django.conf import settings
+from django.core.mail import send_mail
 
 def _send(subject, message, recipient_email):
     """
@@ -14,9 +14,26 @@ def _send(subject, message, recipient_email):
             recipient_list=[recipient_email],
             fail_silently=False,  # raise an exception if the email fails to send
         )
+        return True
     except Exception as e:
         # Log the error or handle it as needed
         print(f"Error sending email to {recipient_email}: {e}")
+        return False
+
+
+def send_password_reset_email(user, reset_url):
+    return _send(
+        subject="[ILES] Password reset request",
+        message=(
+            f"Hello {user.get_full_name() or user.email},\n\n"
+            "We received a request to reset your ILES password.\n\n"
+            f"Use the link below to set a new password:\n{reset_url}\n\n"
+            "If you did not request this change, you can ignore this email.\n\n"
+            "Best regards,\n"
+            "ILES Team"
+        ),
+        recipient_email=user.email,
+    )
         
 
 def send_log_submitted_email(student, supervisor, week_number):

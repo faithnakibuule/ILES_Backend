@@ -1,10 +1,10 @@
-from django.shortcuts import render
 from django.conf import settings
 from django.contrib.auth import get_user_model
-from django.contrib.auth.forms import PasswordResetForm, SetPasswordForm
+from django.contrib.auth.password_validation import validate_password
 from django.contrib.auth.tokens import default_token_generator
-from django.utils.encoding import force_str
-from django.utils.http import urlsafe_base64_decode
+from django.core.exceptions import ValidationError as DjangoValidationError
+from django.utils.encoding import force_bytes, force_str
+from django.utils.http import urlsafe_base64_decode, urlsafe_base64_encode
 from rest_framework import generics, permissions, viewsets, filters, status
 from rest_framework_simplejwt.views import TokenObtainPairView
 from .serializers import (
@@ -27,6 +27,7 @@ from django.db.models import Count
 import csv
 from django.http import HttpResponse
 from .throttles import LoginRateThrottle, RegisterRateThrottle
+from .email_utils import send_password_reset_email
 
 User = get_user_model()
 class RegisterView(generics.CreateAPIView):#This view allows users to register by creating a new CustomUser instance
@@ -305,12 +306,71 @@ class ExportLogsView(APIView):
         return response
 
 class PasswordResetRequestView(APIView):
+    permission_classes = [permissions.AllowAny]
+
     def post(self, request):
-        email = request.data.get('email')
-        # Logic to find user and send email would go here
+        email = (request.data.get("email") or "").strip().lower()
+        frontend_base_url = settings.FRONTEND_URL.rstrip("/")
+
+        if email and frontend_base_url:
+            user = User.objects.filter(email__iexact=email, is_active=True).first()
+            if user:
+                uid = urlsafe_base64_encode(force_bytes(user.pk))
+                token = default_token_generator.make_token(user)
+                reset_url = f"{frontend_base_url}/reset-password?uid={uid}&token={token}"
+                sent = send_password_reset_email(user, reset_url)
+                if not sent:
+                    return Response(
+                        {"message": "Unable to send reset email right now. Please verify email settings and try again."},
+                        status=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                    )
+
         return Response({"message": "Password reset email sent if account exists."}, status=status.HTTP_200_OK)
 
 class PasswordResetConfirmView(APIView):
+    permission_classes = [permissions.AllowAny]
+
     def post(self, request):
-        # Logic to verify token and set new password would go here
+        uid = request.data.get("uid")
+        token = request.data.get("token")
+        new_password = request.data.get("new_password")
+        confirm_password = request.data.get("new_password_confirm")
+
+        if not all([uid, token, new_password, confirm_password]):
+            return Response(
+                {"message": "uid, token, new_password and new_password_confirm are required."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        if new_password != confirm_password:
+            return Response(
+                {"message": "Passwords do not match."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        try:
+            user_id = force_str(urlsafe_base64_decode(uid))
+            user = User.objects.get(pk=user_id, is_active=True)
+        except (TypeError, ValueError, OverflowError, User.DoesNotExist):
+            return Response(
+                {"message": "Invalid reset link."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        if not default_token_generator.check_token(user, token):
+            return Response(
+                {"message": "This reset link is invalid or has expired."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        try:
+            validate_password(new_password, user=user)
+        except DjangoValidationError as exc:
+            return Response(
+                {"message": exc.messages[0]},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        user.set_password(new_password)
+        user.save(update_fields=["password"])
         return Response({"message": "Password has been reset."}, status=status.HTTP_200_OK)
