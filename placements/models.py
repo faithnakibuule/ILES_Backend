@@ -1,4 +1,5 @@
 from django.db import models
+from django.utils import timezone
 from users.models import CustomUser
 
 # Create your models here.
@@ -56,9 +57,22 @@ class InternshipPlacement(models.Model):
     end_date = models.DateField()
     status = models.CharField(max_length=30, choices=STATUS_CHOICES, default='PENDING')
 
+    def calculate_status(self, today=None):
+        if self.status == "CANCELLED":
+            return "CANCELLED"
+
+        today = today or timezone.localdate()
+        if self.end_date and self.end_date < today:
+            return "COMPLETED"
+        if self.start_date and self.start_date <= today <= self.end_date:
+            return "ACTIVE"
+        return "PENDING"
+
     def save(self, *args, **kwargs):
         if self.company_id:
             self.company_name = self.company.name
+        if self.start_date and self.end_date and self.status != "CANCELLED":
+            self.status = self.calculate_status()
         super().save(*args, **kwargs)
 
     def __str__(self):

@@ -1,4 +1,5 @@
 from rest_framework import serializers
+from django.utils import timezone
 
 from users.models import CustomUser
 from users.serializers import CustomUserSerializer
@@ -73,6 +74,7 @@ class PlacementSerializer(serializers.ModelSerializer):
             "end_date",
             "status",
         ]
+        read_only_fields = ["status"]
         extra_kwargs = {
             "company_name": {"required": False, "allow_blank": True},
         }
@@ -87,7 +89,7 @@ class PlacementSerializer(serializers.ModelSerializer):
         company_name = attrs.get("company_name", getattr(instance, "company_name", "")).strip()
         start_date = attrs.get("start_date", getattr(instance, "start_date", None))
         end_date = attrs.get("end_date", getattr(instance, "end_date", None))
-        status = attrs.get("status", getattr(instance, "status", "PENDING"))
+        incoming_status = self.initial_data.get("status") if hasattr(self, "initial_data") else None
 
         if start_date and end_date and start_date >= end_date:
             raise serializers.ValidationError("End date must be after start date.")
@@ -120,24 +122,29 @@ class PlacementSerializer(serializers.ModelSerializer):
             )
 
         if student:
+            today = timezone.localdate()
             existing = InternshipPlacement.objects.filter(
                 student=student,
-                status__in=["ACTIVE", "COMPLETED"],
-            )
+            ).exclude(status="CANCELLED").filter(end_date__gte=today)
             if instance:
                 existing = existing.exclude(pk=instance.pk)
             if existing.exists():
                 raise serializers.ValidationError(
                     {
                         "student_id": (
-                            "This student already has an active or completed placement."
+                            "This student already has a current or upcoming placement."
                         )
                     }
                 )
 
-        if status == "CANCELLED":
+        if incoming_status not in (None, ""):
             raise serializers.ValidationError(
-                {"status": "Use the cancel endpoint to cancel a placement."}
+                {
+                    "status": (
+                        "Placement status is managed automatically from the dates. "
+                        "Use the cancel action to cancel a placement."
+                    )
+                }
             )
 
         return attrs

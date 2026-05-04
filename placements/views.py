@@ -1,4 +1,5 @@
 from django.db.models import Count, Q
+from django.utils import timezone
 
 from rest_framework import permissions, status, viewsets
 from rest_framework.decorators import action
@@ -25,7 +26,18 @@ class PlacementViewSet(viewsets.ModelViewSet):
     ]
     ordering_fields = ["start_date", "end_date", "status", "company_name"]
 
+    def _sync_statuses(self):
+        today = timezone.localdate()
+        base = InternshipPlacement.objects.exclude(status="CANCELLED")
+        base.filter(end_date__lt=today).exclude(status="COMPLETED").update(status="COMPLETED")
+        base.filter(start_date__gt=today).exclude(status="PENDING").update(status="PENDING")
+        base.filter(
+            start_date__lte=today,
+            end_date__gte=today,
+        ).exclude(status="ACTIVE").update(status="ACTIVE")
+
     def get_queryset(self):
+        self._sync_statuses()
         user = self.request.user
         base = (
             InternshipPlacement.objects.select_related(
@@ -54,15 +66,7 @@ class PlacementViewSet(viewsets.ModelViewSet):
     def perform_create(self, serializer):
         if self.request.user.role != "admin":
             raise PermissionDenied("Only admins can create placements.")
-
-        placement = serializer.save()
-        if placement.status == "PENDING" and placement.start_date <= placement.end_date:
-            from django.utils import timezone
-
-            today = timezone.localdate()
-            if placement.start_date <= today <= placement.end_date:
-                placement.status = "ACTIVE"
-                placement.save(update_fields=["status"])
+        serializer.save()
 
     def perform_update(self, serializer):
         if self.request.user.role != "admin":
@@ -163,6 +167,7 @@ class PlacementViewSet(viewsets.ModelViewSet):
         )
 
     def retrieve(self, request, *args, **kwargs):
+        self._sync_statuses()
         instance = self.get_object()
         user = request.user
 
@@ -213,8 +218,7 @@ class CompanyViewSet(viewsets.ModelViewSet):
         return super().partial_update(request, *args, **kwargs)
 
     def destroy(self, request, *args, **kwargs):
-        self.check_admin_permission()
-        return super().destroy(request, *args, **kwargs)
+        raise PermissionDenied("Deleting companies is disabled.")
 
     @action(detail=True, methods=["post"], permission_classes=[permissions.IsAuthenticated])
     def assign_supervisors(self, request, pk=None):
