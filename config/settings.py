@@ -181,11 +181,32 @@ SIMPLE_JWT = {
     'AUTH_HEADER_TYPES': ('Bearer',),
 }
 
-EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
 EMAIL_HOST = config('EMAIL_HOST', default='smtp.gmail.com')
 EMAIL_PORT = config('EMAIL_PORT', default=587, cast=int)
-EMAIL_USE_TLS = config('EMAIL_USE_TLS', default=True, cast=bool)
+EMAIL_USE_TLS = env_bool('EMAIL_USE_TLS', default=True)
+EMAIL_USE_SSL = env_bool('EMAIL_USE_SSL', default=False)
+EMAIL_TIMEOUT = config('EMAIL_TIMEOUT', default=20, cast=int)
 EMAIL_HOST_USER = config('EMAIL_HOST_USER', default='')
 EMAIL_HOST_PASSWORD = config('EMAIL_HOST_PASSWORD', default='')
-DEFAULT_FROM_EMAIL = config('DEFAULT_FROM_EMAIL', default='ILES System <noreply@iles.com>')
+_EMAIL_PLACEHOLDERS = {'', 'your-email@gmail.com', 'your-email@example.com', 'your-app-password'}
+EMAIL_CREDENTIALS_CONFIGURED = (
+    EMAIL_HOST_USER not in _EMAIL_PLACEHOLDERS
+    and EMAIL_HOST_PASSWORD not in _EMAIL_PLACEHOLDERS
+)
+_CONFIGURED_FROM_EMAIL = config('DEFAULT_FROM_EMAIL', default='').strip()
+DEFAULT_FROM_EMAIL = (
+    _CONFIGURED_FROM_EMAIL
+    if _CONFIGURED_FROM_EMAIL and 'your-email@gmail.com' not in _CONFIGURED_FROM_EMAIL
+    else EMAIL_HOST_USER if EMAIL_CREDENTIALS_CONFIGURED
+    else 'webmaster@localhost'
+)
+EMAIL_BACKEND = config(
+    'EMAIL_BACKEND',
+    default=(
+        'django.core.mail.backends.smtp.EmailBackend'
+        if EMAIL_CREDENTIALS_CONFIGURED
+        else 'django.core.mail.backends.console.EmailBackend'
+    ),
+)
 FRONTEND_URL = config('FRONTEND_URL', default='http://localhost:5173')
+FRONTEND_PASSWORD_RESET_PATH = config('FRONTEND_PASSWORD_RESET_PATH', default='/reset-password')

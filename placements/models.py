@@ -1,5 +1,6 @@
 from django.db import models
 from django.utils import timezone
+from django.utils.dateparse import parse_date
 from users.models import CustomUser
 
 # Create your models here.
@@ -57,21 +58,37 @@ class InternshipPlacement(models.Model):
     end_date = models.DateField()
     status = models.CharField(max_length=30, choices=STATUS_CHOICES, default='PENDING')
 
+    def _coerce_date(self, value):
+        if isinstance(value, str):
+            return parse_date(value)
+        return value
+
     def calculate_status(self, today=None):
         if self.status == "CANCELLED":
             return "CANCELLED"
 
         today = today or timezone.localdate()
-        if self.end_date and self.end_date < today:
+        start_date = self._coerce_date(self.start_date)
+        end_date = self._coerce_date(self.end_date)
+
+        if end_date and end_date < today:
             return "COMPLETED"
-        if self.start_date and self.start_date <= today <= self.end_date:
+        if start_date and end_date and start_date <= today <= end_date:
             return "ACTIVE"
         return "PENDING"
 
     def save(self, *args, **kwargs):
         if self.company_id:
             self.company_name = self.company.name
-        if self.start_date and self.end_date and self.status != "CANCELLED":
+
+        update_fields = kwargs.get("update_fields")
+        status_explicitly_saved = update_fields and "status" in update_fields
+        if (
+            not status_explicitly_saved
+            and self.start_date
+            and self.end_date
+            and self.status != "CANCELLED"
+        ):
             self.status = self.calculate_status()
         super().save(*args, **kwargs)
 

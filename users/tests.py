@@ -266,7 +266,12 @@ class PasswordResetAPITests(TestCase):
             last_name="User",
         )
 
-    @override_settings(FRONTEND_URL="http://localhost:5173")
+    @override_settings(
+        FRONTEND_URL="http://localhost:5173",
+        FRONTEND_PASSWORD_RESET_PATH="/reset-password",
+        EMAIL_BACKEND="django.core.mail.backends.smtp.EmailBackend",
+        DEBUG=True,
+    )
     @patch("users.email_utils.send_mail")
     def test_password_reset_request_sends_email_with_frontend_link(self, mock_send_mail):
         response = self.client.post(
@@ -276,8 +281,23 @@ class PasswordResetAPITests(TestCase):
         )
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.data["message"], "Password reset email sent if account exists.")
+        self.assertEqual(response.data["delivery"], "smtp")
         mock_send_mail.assert_called_once()
         self.assertIn("/reset-password?uid=", mock_send_mail.call_args.kwargs["message"])
+
+    @override_settings(FRONTEND_URL="http://localhost:5173", FRONTEND_PASSWORD_RESET_PATH="auth/reset")
+    @patch("users.email_utils.send_mail")
+    def test_password_reset_request_uses_configured_frontend_path(self, mock_send_mail):
+        response = self.client.post(
+            "/api/auth/password_reset/",
+            {"email": "resetme@test.com"},
+            format="json",
+        )
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        mock_send_mail.assert_called_once()
+        self.assertIn("/auth/reset?uid=", mock_send_mail.call_args.kwargs["message"])
 
     def test_password_reset_confirm_updates_password(self):
         from django.contrib.auth.tokens import default_token_generator

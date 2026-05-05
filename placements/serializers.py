@@ -1,5 +1,4 @@
 from rest_framework import serializers
-from django.utils import timezone
 
 from users.models import CustomUser
 from users.serializers import CustomUserSerializer
@@ -146,29 +145,12 @@ class PlacementSerializer(serializers.ModelSerializer):
                 }
             )
 
-        if student and not getattr(student, "course_id", None):
-            raise serializers.ValidationError(
-                {
-                    "student_id": (
-                        "Selected student must be assigned to a course before creating a placement."
-                    )
-                }
-            )
-
-        if academic_supervisor and not getattr(academic_supervisor, "college_id", None):
-            raise serializers.ValidationError(
-                {
-                    "academic_supervisor_id": (
-                        "Selected academic supervisor must be assigned to a college."
-                    )
-                }
-            )
-
         if (
             student
             and academic_supervisor
             and getattr(student, "course_id", None)
             and getattr(student.course, "college_id", None)
+            and getattr(academic_supervisor, "college_id", None)
             and academic_supervisor.college_id != student.course.college_id
         ):
             raise serializers.ValidationError(
@@ -180,10 +162,9 @@ class PlacementSerializer(serializers.ModelSerializer):
             )
 
         if student:
-            today = timezone.localdate()
             existing = InternshipPlacement.objects.filter(
                 student=student,
-            ).exclude(status="CANCELLED").filter(end_date__gte=today)
+            ).exclude(status="CANCELLED")
             if instance:
                 existing = existing.exclude(pk=instance.pk)
             if existing.exists():
@@ -196,14 +177,7 @@ class PlacementSerializer(serializers.ModelSerializer):
                 )
 
         if incoming_status not in (None, ""):
-            raise serializers.ValidationError(
-                {
-                    "status": (
-                        "Placement status is managed automatically from the dates. "
-                        "Use the cancel action to cancel a placement."
-                    )
-                }
-            )
+            attrs["status"] = incoming_status
 
         return attrs
 

@@ -27,6 +27,7 @@ from rest_framework.response import Response
 from django.db.models import Count, Q
 from django.db.models import ProtectedError
 import csv
+from urllib.parse import urlencode
 from django.http import HttpResponse
 from .throttles import LoginRateThrottle, RegisterRateThrottle
 from .email_utils import send_password_reset_email
@@ -370,25 +371,34 @@ class PasswordResetRequestView(APIView):
     def post(self, request):
         email = (request.data.get("email") or "").strip().lower()
         frontend_base_url = settings.FRONTEND_URL.rstrip("/")
+        reset_path = getattr(settings, "FRONTEND_PASSWORD_RESET_PATH", "/reset-password")
+        if not reset_path.startswith("/"):
+            reset_path = f"/{reset_path}"
 
-        print(f"DEBUG: Reset requested for email: {email}")
-
+        delivery = "skipped"
         if email and frontend_base_url:
             user = User.objects.filter(email__iexact=email, is_active=True).first()
-            print(f"DEBUG: User found: {user}")
             
             if user:
                 uid = urlsafe_base64_encode(force_bytes(user.pk))
                 token = default_token_generator.make_token(user)
-                reset_url = f"{frontend_base_url}/reset-password?uid={uid}&token={token}"
+                reset_url = f"{frontend_base_url}{reset_path}?{urlencode({'uid': uid, 'token': token})}"
                 sent = send_password_reset_email(user, reset_url)
                 if not sent:
                     return Response(
                         {"message": "Unable to send reset email right now. Please verify email settings and try again."},
                         status=status.HTTP_500_INTERNAL_SERVER_ERROR,
                     )
+                delivery = (
+                    "console"
+                    if settings.EMAIL_BACKEND.endswith("console.EmailBackend")
+                    else "smtp"
+                )
 
-        return Response({"message": "Password reset email sent if account exists."}, status=status.HTTP_200_OK)
+        response_data = {"message": "Password reset email sent if account exists."}
+        if settings.DEBUG:
+            response_data["delivery"] = delivery
+        return Response(response_data, status=status.HTTP_200_OK)
 
 class PasswordResetConfirmView(APIView):
     permission_classes = [permissions.AllowAny]

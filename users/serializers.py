@@ -167,11 +167,7 @@ class RegisterSerializer(serializers.ModelSerializer):
             )
 
         if role == "student":
-            if not course:
-                raise serializers.ValidationError(
-                    {"course_id": "Students must select a course during registration."}
-                )
-            if college and getattr(course, "college_id", None) != college.id:
+            if course and college and getattr(course, "college_id", None) != college.id:
                 raise serializers.ValidationError(
                     {"course_id": "Selected course does not belong to the selected college."}
                 )
@@ -471,7 +467,8 @@ class CourseSerializer(serializers.ModelSerializer):
         queryset=College.objects.all(),
         source="college",
         write_only=True,
-        required=True,
+        required=False,
+        allow_null=True,
     )
 
     class Meta:

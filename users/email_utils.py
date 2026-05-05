@@ -1,5 +1,8 @@
 from django.conf import settings
 from django.core.mail import send_mail
+import logging
+
+logger = logging.getLogger(__name__)
 
 def _send(subject, message, recipient_email):
     """
@@ -15,9 +18,8 @@ def _send(subject, message, recipient_email):
             fail_silently=False,  # raise an exception if the email fails to send
         )
         return True
-    except Exception as e:
-        # Log the error or handle it as needed
-        print(f"Error sending email to {recipient_email}: {e}")
+    except Exception:
+        logger.exception("Error sending email to %s", recipient_email)
         return False
 
 
