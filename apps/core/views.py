@@ -1,17 +1,11 @@
-from django.shortcuts import render
+from rest_framework.generics import ListAPIView
+from rest_framework.permissions import IsAuthenticated
+from django.contrib.auth import get_user_model
+from .serializers import UserSerializer
 
-from rest_framework import generics
-from .models import Item
-from .serializers import ItemSerializer
+User = get_user_model()
 
-
-class ItemListCreate(generics.ListCreateAPIView):
-    """View for listing and creating items"""
-    queryset = Item.objects.all()
-    serializer_class = ItemSerializer
-
-
-class ItemDetail(generics.RetrieveUpdateDestroyAPIView):
-    """View for retrieving, updating and deleting items"""
-    queryset = Item.objects.all()
-    serializer_class = ItemSerializer
+class UserListView(ListAPIView):
+    queryset = User.objects.all()
+    serializer_class = UserSerializer
+    permission_classes = [IsAuthenticated]

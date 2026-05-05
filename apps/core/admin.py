@@ -1,3 +1,1 @@
-from django.contrib import admin
-
-# Register your models here.
+# User model admin is registered in the users app

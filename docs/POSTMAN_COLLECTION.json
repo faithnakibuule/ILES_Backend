@@ -1,0 +1,44 @@
+{
+  "info": {
+    "name": "ILES Auth API",
+    "schema": "https://schema.getpostman.com/json/colllection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "Register User",
+      "request": {
+        "method": "POST",
+        "header": [{ "key": "Content-Type", "value": "application/json" }],
+        "url": { "raw": "http://localhost:8000/api/auth/register/" },
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"email\": \"student@test.com\",\n  \"password\": \"StrongPass123!\",\n  \"password2\": \"StrongPass123!\",\n  \"full_name\": \"Test Student\",\n  \"role\": \"student\"\n}"
+        }
+      }
+    },
+    {
+      "name": "Login",
+      "request": {
+        "method": "POST",
+        "header": [{ "key": "Content-Type", "value": "application/json" }],
+        "url": { "raw": "http://localhost:8000/api/auth/login/" },
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"email\": \"student@test.com\",\n  \"password\": \"StrongPass123!\"\n}"
+        }
+      }
+    },
+    {
+      "name": "Refresh Token",
+      "request": {
+        "method": "POST",
+        "header": [{ "key": "Content-Type", "value": "application/json" }],
+        "url": { "raw": "http://localhost:8000/api/auth/token/refresh/" },
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"refresh\": \"<paste_refresh_token_here>\"\n}"
+        }
+      }
+    }
+  ]
+}

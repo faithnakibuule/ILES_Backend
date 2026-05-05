@@ -1,0 +1,109 @@
+from django.db import models
+from django.contrib.auth.models import AbstractUser,BaseUserManager
+
+# Create your models here.
+
+class College(models.Model):
+    name = models.CharField(max_length=255, unique=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ["name"]
+
+    def __str__(self):
+        return self.name
+
+class Course(models.Model):
+    name = models.CharField(max_length=255, unique=True)
+    college = models.ForeignKey(
+        "College",
+        on_delete=models.PROTECT,
+        null=True,
+        blank=True,
+        related_name="courses",
+    )
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ["name"]
+
+    def __str__(self):
+        return self.name
+
+#This custom user model allows us to use email as the unique identifier instead of username, and also includes a role field to differentiate between different types of users in the system. The CustomUserManager handles the creation of regular users and superusers, ensuring that the necessary fields are set correctly.
+#the builder-knows how to create a user correctly
+class CustomUserManager(BaseUserManager):
+    def create_user(self, email, password=None, **extra_fields):
+        if not email:
+            raise ValueError("Email is required.")
+        
+        email = self.normalize_email(email)#lowercase the email for consistency
+        user = self.model(email=email, **extra_fields)
+        user.set_password(password)#This hashes the password
+        user.save(using=self._db)
+        return user
+    #superusers need full system access, so we set is_staff and is_superuser to True
+    def create_superuser(self, email, password=None, **extra_fields):
+        extra_fields.setdefault('is_staff', True)
+        extra_fields.setdefault('is_superuser',True)
+        extra_fields.setdefault('role', 'admin')
+        return self.create_user(email, password, **extra_fields)   
+    
+#defines what a user record holds in the database    
+class CustomUser(AbstractUser):
+    ROLE_CHOICES = [
+        ('student','Student'),
+        ('workplace_supervisor','Workplace Supervisor'),
+        ('academic_supervisor','Academic Supervisor'),
+        ('admin','Admin'),
+    ]
+    
+    username = None #we won't use the default username field
+    email = models.EmailField(unique = True)#replace it with email
+    role = models.CharField(
+        max_length = 30,
+        choices = ROLE_CHOICES,
+        default = 'student'
+    )
+    phone = models.CharField(max_length=20, blank=True, null=True)
+    academic_supervisor = models.ForeignKey(
+        'self',
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='supervisor_students',
+        limit_choices_to={'role': 'academic_supervisor'}
+    )
+    company = models.ForeignKey(
+        'placements.Company',
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='users'
+    )
+    course = models.ForeignKey(
+        'Course',
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='students',
+        limit_choices_to={'role': 'student'},
+    )
+    college = models.ForeignKey(
+        'College',
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='academic_supervisors',
+    )
+
+    USERNAME_FIELD = 'email'
+    REQUIRED_FIELDS =[]
+
+    objects = CustomUserManager()
+
+    def __str__(self):
+        return f"{self.email} ({self.role})"
+
