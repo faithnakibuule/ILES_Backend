@@ -58,17 +58,18 @@ def send_log_reviewed_email(student, academic_supervisor, week_number):
     Fired when: workplace supervisor approves a log (SUBMITTED → REVIEWED)
     Sent to: academic supervisor
     """
-    subject = f"[Iles] Log raedy for scoring - Week {week_number}",
-    message = (
-        f"Hello {academic_supervisor.first_name},\n\n"
+    _send(
+        subject = f"[Iles] Log raedy for scoring - Week {week_number}",
+        message = (
+            f"Hello {academic_supervisor.first_name},\n\n"
             f"A week {week_number} log from {student.first_name} {student.last_name}"
-        f"has been reviewed and is ready for scoring.\n\n"
-        f"Please log in to the ILES system to review and score the log at your earliest convenience.\n\n"
-        f"Best regards,\n"
-        f"ILES Team"
-    ),
-    recipient_email = academic_supervisor.email
-    
+            f"has been reviewed and is ready for scoring.\n\n"
+            f"Please log in to the ILES system to review and score the log at your earliest convenience.\n\n"
+            f"Best regards,\n"
+            f"ILES Team"
+        ),
+        recipient_email = academic_supervisor.email
+    )     
 
 def send_log_sent_back_email(student, week_number, comment):
     """

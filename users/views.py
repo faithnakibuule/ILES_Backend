@@ -371,8 +371,12 @@ class PasswordResetRequestView(APIView):
         email = (request.data.get("email") or "").strip().lower()
         frontend_base_url = settings.FRONTEND_URL.rstrip("/")
 
+        print(f"DEBUG: Reset requested for email: {email}")
+
         if email and frontend_base_url:
             user = User.objects.filter(email__iexact=email, is_active=True).first()
+            print(f"DEBUG: User found: {user}")
+            
             if user:
                 uid = urlsafe_base64_encode(force_bytes(user.pk))
                 token = default_token_generator.make_token(user)
