@@ -1,0 +1,32 @@
+# .github/workflows/supabase-keepalive.yml
+# Pings Supabase every 5 days to prevent the free tier from pausing
+# Uses less than 0.3% of GitHub's free 2000 monthly minutes
+
+name: Supabase Keep-Alive
+
+on:
+  schedule:
+    # Runs every 5 days at 9:00 AM UTC
+    # Cron format: minute hour day month weekday
+    - cron: '0 9 */5 * *'
+  workflow_dispatch:
+    # Allows you to trigger this manually from GitHub UI
+    # Useful for testing that it works before relying on the schedule
+
+jobs:
+  ping:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Ping Supabase via live backend
+        # Calls your live login endpoint which triggers a database query
+        # A failed login still hits the database — enough to reset the timer
+        run: |
+          curl -s -o /dev/null -w "HTTP Status: %{http_code}\n" \
+            -X POST \
+            -H "Content-Type: application/json" \
+            -d '{"email":"student@iles.com","password":"Admin1234!"}' \
+            https://iles-backend-9ydy.onrender.com/api/auth/login/
+
+      - name: Confirm ping completed
+        run: echo "Supabase pinged successfully at $(date)"
