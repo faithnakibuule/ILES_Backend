@@ -1,6 +1,7 @@
 from pathlib import Path
 from datetime import timedelta
 import sys
+import dj_database_url
 
 from decouple import config, Csv
 
@@ -95,31 +96,46 @@ WSGI_APPLICATION = 'config.wsgi.application'
 
 # Database
 db_engine = config('DB_ENGINE', default='django.db.backends.sqlite3')
+DATABASE_URL = config('DATABASE_URL', default='')
+
 if 'test' in sys.argv:
+    # Fast SQLite for running tests locally
     DATABASES = {
         'default': {
             'ENGINE': 'django.db.backends.sqlite3',
             'NAME': BASE_DIR / 'test_db.sqlite3',
         }
     }
-elif db_engine == 'django.db.backends.sqlite3':
+elif DATABASE_URL:
+    # Production — Render/Supabase provides a single connection URL
     DATABASES = {
-        'default': {
-            'ENGINE': 'django.db.backends.sqlite3',
-            'NAME': config('DB_NAME', default=str(BASE_DIR / 'db.sqlite3')),
-        }
+        'default': dj_database_url.parse(
+            DATABASE_URL,
+            conn_max_age=600,        # reuse connections for 10 mins
+            conn_health_checks=True, # drop unhealthy connections automatically
+        )
     }
 else:
-    DATABASES = {
-        'default': {
-            'ENGINE': config('DB_ENGINE'),
-            'NAME': config('DB_NAME'),
-            'USER': config('DB_USER'),
-            'PASSWORD': config('DB_PASSWORD'),
-            'HOST': config('DB_HOST', default='127.0.0.1'),
-            'PORT': config('DB_PORT', default=5432, cast=int),
+    # Local development — reads separate vars from .env
+    db_engine = config('DB_ENGINE', default='django.db.backends.sqlite3')
+    if db_engine == 'django.db.backends.sqlite3':
+        DATABASES = {
+            'default': {
+                'ENGINE': 'django.db.backends.sqlite3',
+                'NAME': config('DB_NAME', default=str(BASE_DIR / 'db.sqlite3')),
+            }
         }
-    }
+    else:
+        DATABASES = {
+            'default': {
+                'ENGINE': config('DB_ENGINE'),
+                'NAME': config('DB_NAME'),
+                'USER': config('DB_USER'),
+                'PASSWORD': config('DB_PASSWORD'),
+                'HOST': config('DB_HOST', default='127.0.0.1'),
+                'PORT': config('DB_PORT', default=5432, cast=int),
+            }
+        }
 
 AUTH_PASSWORD_VALIDATORS = [
     {'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator'},
