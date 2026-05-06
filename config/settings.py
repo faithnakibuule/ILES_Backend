@@ -50,15 +50,27 @@ INSTALLED_APPS = [
 
 AUTH_USER_MODEL = 'users.CustomUser'
 
+# iles_backend/settings.py
+
 MIDDLEWARE = [
-    'django.middleware.common.CommonMiddleware',
-    'django.middleware.security.SecurityMiddleware',
-    'whitenoise.middleware.WhiteNoiseMiddleware',
+    # CorsMiddleware MUST be first — it needs to handle preflight
+    # requests before Django touches them
     'corsheaders.middleware.CorsMiddleware',
+    # Django's core security checks (HTTPS, HSTS, etc.)
+    'django.middleware.security.SecurityMiddleware',
+    # WhiteNoise serves your static files in production
+    'whitenoise.middleware.WhiteNoiseMiddleware',
+    # Enables sessions (needed for Django admin)
     'django.contrib.sessions.middleware.SessionMiddleware',
+    # Handles common HTTP tasks (URL slashes, content type)
+    'django.middleware.common.CommonMiddleware',
+    # Protects against Cross-Site Request Forgery attacks
     'django.middleware.csrf.CsrfViewMiddleware',
+    # Reads the JWT and attaches request.user
     'django.contrib.auth.middleware.AuthenticationMiddleware',
+    # Enables flash messages in templates
     'django.contrib.messages.middleware.MessageMiddleware',
+    # Prevents your app from being embedded in iframes (clickjacking)
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
 
@@ -208,3 +220,19 @@ EMAIL_BACKEND = config(
 )
 FRONTEND_URL = config('FRONTEND_URL', default='http://localhost:5173')
 FRONTEND_PASSWORD_RESET_PATH = config('FRONTEND_PASSWORD_RESET_PATH', default='/reset-password')
+
+if not DEBUG:
+    # Force all HTTP traffic to redirect to HTTPS
+    # Render provides HTTPS automatically — this ensures no one
+    # accidentally connects over plain HTTP
+    SECURE_SSL_REDIRECT = True
+    SECURE_HSTS_SECONDS = 31536000
+    # Apply HSTS to all subdomains too
+    SECURE_HSTS_INCLUDE_SUBDOMAINS = True
+    # Allow this site to be added to browser HSTS preload lists
+    SECURE_HSTS_PRELOAD = True
+    # Session cookie only travels over HTTPS, never plain HTTP
+    SESSION_COOKIE_SECURE = True
+    # CSRF cookie only travels over HTTPS, never plain HTTP
+    CSRF_COOKIE_SECURE = True
+    SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
