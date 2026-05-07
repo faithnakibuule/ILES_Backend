@@ -234,10 +234,6 @@ EMAIL_BACKEND = config(
         else 'django.core.mail.backends.console.EmailBackend'
     ),
 )
-# config/settings.py
-# Add near email settings
-
-RESEND_API_KEY = config('RESEND_API_KEY', default='')
 
 FRONTEND_URL = config('FRONTEND_URL', default='http://localhost:5173')
 FRONTEND_PASSWORD_RESET_PATH = config('FRONTEND_PASSWORD_RESET_PATH', default='/reset-password')
