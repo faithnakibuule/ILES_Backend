@@ -1,7 +1,15 @@
+# config/urls.py
 from django.contrib import admin
 from django.urls import path, include
+from django.http import JsonResponse          # ← ADD THIS
 from users.views import CollegeViewSet, CourseViewSet
 import django.contrib.auth.views as auth_views
+
+# ── Lightweight health check — responds in under 1ms ──────────────────────
+# Render pings this to know the app is alive
+# Much faster than letting Render hit the root 404 handler
+def health_check(request):
+    return JsonResponse({"status": "ok"}, status=200)
 
 college_list = CollegeViewSet.as_view({
     'get': 'list',
@@ -27,11 +35,13 @@ course_detail = CourseViewSet.as_view({
 urlpatterns = [
     path('admin/', admin.site.urls),
 
+    # ── Health check — used by Render and GitHub Actions keep-alive ────────
+    path('api/health/', health_check, name='health-check'),
+
     path('api/password_reset/', auth_views.PasswordResetView.as_view(), name='password_reset'),
     path('api/password_reset/done/', auth_views.PasswordResetDoneView.as_view(), name='password_reset_done'),
     path('api/reset/<uidb64>/<token>/', auth_views.PasswordResetConfirmView.as_view(), name='password_reset_confirm'),
     path('api/reset/done/', auth_views.PasswordResetCompleteView.as_view(), name='password_reset_complete'),
-
     path('api/auth/', include('users.urls')),
     path('api/colleges/', college_list, name='college-list'),
     path('api/colleges/<int:pk>/', college_detail, name='college-detail'),

@@ -383,19 +383,20 @@ class PasswordResetRequestView(APIView):
                 uid = urlsafe_base64_encode(force_bytes(user.pk))
                 token = default_token_generator.make_token(user)
                 reset_url = f"{frontend_base_url}{reset_path}?{urlencode({'uid': uid, 'token': token})}"
+                # Send email — gracefully handles Render's SMTP block
+                # Returns False if email fails but never crashes the request
                 sent = send_password_reset_email(user, reset_url)
-                if not sent:
-                    return Response(
-                        {"message": "Unable to send reset email right now. Please verify email settings and try again."},
-                        status=status.HTTP_500_INTERNAL_SERVER_ERROR,
-                    )
                 delivery = (
                     "console"
                     if settings.EMAIL_BACKEND.endswith("console.EmailBackend")
                     else "smtp"
                 )
 
-        response_data = {"message": "Password reset email sent if account exists."}
+        # Always return 200 — prevents user enumeration attacks
+        # and prevents 500 crashes when Render blocks SMTP on free tier
+        response_data = {
+            "message": "If an account exists with that email, a password reset link has been sent."
+        }
         if settings.DEBUG:
             response_data["delivery"] = delivery
         return Response(response_data, status=status.HTTP_200_OK)
