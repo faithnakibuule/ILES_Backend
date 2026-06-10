@@ -1,19 +1,17 @@
-# users/management/commands/create_admin.py
-# One-time command to create a superuser on production
-# DELETE THIS FILE after running it once
-
+import os
 from django.core.management.base import BaseCommand
 from django.contrib.auth import get_user_model
 
 User = get_user_model()
 
+
 class Command(BaseCommand):
-    help = 'Creates a default superuser for production'
+    help = 'Creates the default admin user if one does not already exist (idempotent)'
 
     def handle(self, *args, **kwargs):
-        email = 'admin@iles.com'
-        password = 'Admin!1234!'
-        
+        email = os.environ.get('DJANGO_SUPERUSER_EMAIL', 'admin@iles.com')
+        password = os.environ.get('DJANGO_SUPERUSER_PASSWORD', 'Admin!1234')
+
         if User.objects.filter(email=email).exists():
             self.stdout.write(self.style.WARNING(
                 f'Admin user {email} already exists — skipping.'
