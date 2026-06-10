@@ -26,7 +26,7 @@ jobs:
             -X POST \
             -H "Content-Type: application/json" \
             -d '{"email":"student@iles.com","password":"Student1234!"}' \
-            https://iles-backend-9ydy.onrender.com/api/auth/login/
+            https://iles-backend-9ydy.onrender.com/api/health/
 
       - name: Confirm ping completed
         run: echo "Supabase pinged successfully at $(date)"

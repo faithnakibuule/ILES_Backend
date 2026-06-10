@@ -4,6 +4,7 @@ from django.urls import path, include
 from django.http import JsonResponse          # ← ADD THIS
 from users.views import CollegeViewSet, CourseViewSet
 import django.contrib.auth.views as auth_views
+from drf_spectacular.views import SpectacularAPIView, SpectacularSwaggerView, SpectacularRedocView
 
 # ── Lightweight health check — responds in under 1ms ──────────────────────
 # Render pings this to know the app is alive
@@ -57,4 +58,7 @@ urlpatterns = [
     path('api/', include('reviews.urls')),
     path('api/', include('api.urls')),
     path('api/core/', include('apps.core.urls')),
+    path('api/schema/', SpectacularAPIView.as_view(), name='schema'),
+    path('api/schema/docs/', SpectacularSwaggerView.as_view(url_name='schema'), name='swagger-ui'),
+    path('api/schema/redoc/', SpectacularRedocView.as_view(url_name='schema'), name='redoc'),
 ]
