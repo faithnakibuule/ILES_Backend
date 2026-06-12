@@ -40,6 +40,7 @@ INSTALLED_APPS = [
     'rest_framework_simplejwt.token_blacklist',
     'corsheaders',
     'django_filters',
+    'drf_spectacular',
     # Local apps
     'users',
     'placements',
@@ -190,6 +191,7 @@ REST_FRAMEWORK = {
         'rest_framework.throttling.AnonRateThrottle',
         'rest_framework.throttling.UserRateThrottle',
     ],
+    'DEFAULT_SCHEMA_CLASS': 'drf_spectacular.openapi.AutoSchema',
     'DEFAULT_THROTTLE_RATES': {
         'anon': '100/day',
         'user': '1000/day',
@@ -197,6 +199,14 @@ REST_FRAMEWORK = {
         'register': '50/hour',
     },
     'EXCEPTION_HANDLER': 'api.error_handlers.custom_exception_handler',
+}
+
+
+SPECTACULAR_SETTINGS = {
+"TITLE": "ILES Backend API",
+"DESCRIPTION": "API documentation for the ILES Backend, built with Django REST Framework and drf-spectacular.",
+"VERSION": "1.0.0",
+
 }
 
 SIMPLE_JWT = {
@@ -232,6 +242,7 @@ EMAIL_BACKEND = config(
         else 'django.core.mail.backends.console.EmailBackend'
     ),
 )
+
 FRONTEND_URL = config('FRONTEND_URL', default='http://localhost:5173')
 FRONTEND_PASSWORD_RESET_PATH = config('FRONTEND_PASSWORD_RESET_PATH', default='/reset-password')
 

@@ -1,0 +1,4471 @@
+openapi: 3.0.3
+info:
+  title: ILES Backend API
+  version: 1.0.0
+  description: API documentation for the ILES Backend, built with Django REST Framework
+    and drf-spectacular.
+paths:
+  /api/academic-overview/:
+    get:
+      operationId: academic_overview_retrieve
+      tags:
+      - academic-overview
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          description: No response body
+  /api/academic-stats/:
+    get:
+      operationId: academic_stats_retrieve
+      tags:
+      - academic-stats
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          description: No response body
+  /api/admin-overview/:
+    get:
+      operationId: admin_overview_retrieve
+      tags:
+      - admin-overview
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          description: No response body
+  /api/admin-stats/:
+    get:
+      operationId: admin_stats_retrieve
+      tags:
+      - admin-stats
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          description: No response body
+  /api/admin/export/logs/:
+    get:
+      operationId: admin_export_logs_retrieve
+      description: |-
+        GET /api/admin/export/logs/
+        Downloads a CSV file of all logs with status and scores.
+        Admin only.
+      tags:
+      - admin
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          description: No response body
+  /api/admin/export/placements/:
+    get:
+      operationId: admin_export_placements_retrieve
+      description: |-
+        GET /api/admin/export/placements/
+        Downloads a CSV file of all placements.
+        Admin only.
+      tags:
+      - admin
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          description: No response body
+  /api/admin/users/:
+    get:
+      operationId: admin_users_list
+      description: |-
+        Admin-only control panel for managing all users.
+        Supports filtering by role, searching by name/email,
+        creating users, and deactivating users.
+      parameters:
+      - in: query
+        name: company
+        schema:
+          type: integer
+      - in: query
+        name: is_active
+        schema:
+          type: boolean
+      - name: ordering
+        required: false
+        in: query
+        description: Which field to use when ordering the results.
+        schema:
+          type: string
+      - name: page
+        required: false
+        in: query
+        description: A page number within the paginated result set.
+        schema:
+          type: integer
+      - in: query
+        name: role
+        schema:
+          type: string
+          enum:
+          - academic_supervisor
+          - admin
+          - student
+          - workplace_supervisor
+        description: |-
+          * `student` - Student
+          * `workplace_supervisor` - Workplace Supervisor
+          * `academic_supervisor` - Academic Supervisor
+          * `admin` - Admin
+      - name: search
+        required: false
+        in: query
+        description: A search term.
+        schema:
+          type: string
+      tags:
+      - admin
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedAdminUserList'
+          description: ''
+    post:
+      operationId: admin_users_create
+      description: |-
+        Admin-only control panel for managing all users.
+        Supports filtering by role, searching by name/email,
+        creating users, and deactivating users.
+      tags:
+      - admin
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AdminUser'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/AdminUser'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/AdminUser'
+        required: true
+      security:
+      - jwtAuth: []
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AdminUser'
+          description: ''
+  /api/admin/users/{id}/:
+    get:
+      operationId: admin_users_retrieve
+      description: |-
+        Admin-only control panel for managing all users.
+        Supports filtering by role, searching by name/email,
+        creating users, and deactivating users.
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this user.
+        required: true
+      tags:
+      - admin
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AdminUser'
+          description: ''
+    put:
+      operationId: admin_users_update
+      description: |-
+        Admin-only control panel for managing all users.
+        Supports filtering by role, searching by name/email,
+        creating users, and deactivating users.
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this user.
+        required: true
+      tags:
+      - admin
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AdminUser'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/AdminUser'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/AdminUser'
+        required: true
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AdminUser'
+          description: ''
+    patch:
+      operationId: admin_users_partial_update
+      description: |-
+        Admin-only control panel for managing all users.
+        Supports filtering by role, searching by name/email,
+        creating users, and deactivating users.
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this user.
+        required: true
+      tags:
+      - admin
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatchedAdminUser'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PatchedAdminUser'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PatchedAdminUser'
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AdminUser'
+          description: ''
+    delete:
+      operationId: admin_users_destroy
+      description: |-
+        Admin-only control panel for managing all users.
+        Supports filtering by role, searching by name/email,
+        creating users, and deactivating users.
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this user.
+        required: true
+      tags:
+      - admin
+      security:
+      - jwtAuth: []
+      responses:
+        '204':
+          description: No response body
+  /api/admin/users/{id}/deactivate/:
+    patch:
+      operationId: admin_users_deactivate_partial_update
+      description: |-
+        Custom action: PATCH /api/admin/users/{id}/deactivate/
+        Sets is_active=False without deleting the user.
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this user.
+        required: true
+      tags:
+      - admin
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatchedAdminUser'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PatchedAdminUser'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PatchedAdminUser'
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AdminUser'
+          description: ''
+  /api/auth/admin-stats/:
+    get:
+      operationId: auth_admin_stats_retrieve
+      description: |-
+        GET /api/admin/stats/
+        Returns programme-wide counts for the Admin Dashboard.
+        Only accessible by authenticated users (admin role enforced on frontend).
+      tags:
+      - auth
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          description: No response body
+  /api/auth/colleges/:
+    get:
+      operationId: auth_colleges_list
+      parameters:
+      - name: ordering
+        required: false
+        in: query
+        description: Which field to use when ordering the results.
+        schema:
+          type: string
+      - name: page
+        required: false
+        in: query
+        description: A page number within the paginated result set.
+        schema:
+          type: integer
+      - name: search
+        required: false
+        in: query
+        description: A search term.
+        schema:
+          type: string
+      tags:
+      - auth
+      security:
+      - jwtAuth: []
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedCollegeList'
+          description: ''
+    post:
+      operationId: auth_colleges_create
+      tags:
+      - auth
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/College'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/College'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/College'
+        required: true
+      security:
+      - jwtAuth: []
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/College'
+          description: ''
+  /api/auth/colleges/{id}/:
+    get:
+      operationId: auth_colleges_retrieve
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this college.
+        required: true
+      tags:
+      - auth
+      security:
+      - jwtAuth: []
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/College'
+          description: ''
+    put:
+      operationId: auth_colleges_update
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this college.
+        required: true
+      tags:
+      - auth
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/College'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/College'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/College'
+        required: true
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/College'
+          description: ''
+    patch:
+      operationId: auth_colleges_partial_update
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this college.
+        required: true
+      tags:
+      - auth
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatchedCollege'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PatchedCollege'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PatchedCollege'
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/College'
+          description: ''
+    delete:
+      operationId: auth_colleges_destroy
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this college.
+        required: true
+      tags:
+      - auth
+      security:
+      - jwtAuth: []
+      responses:
+        '204':
+          description: No response body
+  /api/auth/courses/:
+    get:
+      operationId: auth_courses_list
+      parameters:
+      - name: ordering
+        required: false
+        in: query
+        description: Which field to use when ordering the results.
+        schema:
+          type: string
+      - name: page
+        required: false
+        in: query
+        description: A page number within the paginated result set.
+        schema:
+          type: integer
+      - name: search
+        required: false
+        in: query
+        description: A search term.
+        schema:
+          type: string
+      tags:
+      - auth
+      security:
+      - jwtAuth: []
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedCourseList'
+          description: ''
+    post:
+      operationId: auth_courses_create
+      tags:
+      - auth
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Course'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/Course'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/Course'
+        required: true
+      security:
+      - jwtAuth: []
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Course'
+          description: ''
+  /api/auth/courses/{id}/:
+    get:
+      operationId: auth_courses_retrieve
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this course.
+        required: true
+      tags:
+      - auth
+      security:
+      - jwtAuth: []
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Course'
+          description: ''
+    put:
+      operationId: auth_courses_update
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this course.
+        required: true
+      tags:
+      - auth
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Course'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/Course'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/Course'
+        required: true
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Course'
+          description: ''
+    patch:
+      operationId: auth_courses_partial_update
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this course.
+        required: true
+      tags:
+      - auth
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatchedCourse'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PatchedCourse'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PatchedCourse'
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Course'
+          description: ''
+    delete:
+      operationId: auth_courses_destroy
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this course.
+        required: true
+      tags:
+      - auth
+      security:
+      - jwtAuth: []
+      responses:
+        '204':
+          description: No response body
+  /api/auth/login/:
+    post:
+      operationId: auth_login_create
+      description: |-
+        Takes a set of user credentials and returns an access and refresh JSON web
+        token pair to prove the authentication of those credentials.
+      tags:
+      - auth
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CustomTokenObtainPair'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/CustomTokenObtainPair'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/CustomTokenObtainPair'
+        required: true
+      security:
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CustomTokenObtainPair'
+          description: ''
+  /api/auth/me/:
+    get:
+      operationId: auth_me_retrieve
+      description: |-
+        GET  /api/auth/me/ — returns current user's profile (CustomUserSerializer)
+        PATCH /api/auth/me/ — updates name/phone (UserUpdateSerializer),
+                              then returns the updated profile using CustomUserSerializer
+                              so the frontend gets full_name back immediately.
+      tags:
+      - auth
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CustomUser'
+          description: ''
+    put:
+      operationId: auth_me_update
+      description: |-
+        GET  /api/auth/me/ — returns current user's profile (CustomUserSerializer)
+        PATCH /api/auth/me/ — updates name/phone (UserUpdateSerializer),
+                              then returns the updated profile using CustomUserSerializer
+                              so the frontend gets full_name back immediately.
+      tags:
+      - auth
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CustomUser'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/CustomUser'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/CustomUser'
+        required: true
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CustomUser'
+          description: ''
+    patch:
+      operationId: auth_me_partial_update
+      description: |-
+        GET  /api/auth/me/ — returns current user's profile (CustomUserSerializer)
+        PATCH /api/auth/me/ — updates name/phone (UserUpdateSerializer),
+                              then returns the updated profile using CustomUserSerializer
+                              so the frontend gets full_name back immediately.
+      tags:
+      - auth
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatchedUserUpdate'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PatchedUserUpdate'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PatchedUserUpdate'
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserUpdate'
+          description: ''
+  /api/auth/password_reset/:
+    post:
+      operationId: auth_password_reset_create
+      tags:
+      - auth
+      security:
+      - jwtAuth: []
+      - {}
+      responses:
+        '200':
+          description: No response body
+  /api/auth/password_reset/confirm/:
+    post:
+      operationId: auth_password_reset_confirm_create
+      tags:
+      - auth
+      security:
+      - jwtAuth: []
+      - {}
+      responses:
+        '200':
+          description: No response body
+  /api/auth/register/:
+    post:
+      operationId: auth_register_create
+      tags:
+      - auth
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Register'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/Register'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/Register'
+        required: true
+      security:
+      - jwtAuth: []
+      - {}
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Register'
+          description: ''
+  /api/auth/token/refresh/:
+    post:
+      operationId: auth_token_refresh_create
+      description: |-
+        Takes a refresh type JSON web token and returns an access type JSON web
+        token if the refresh token is valid.
+      tags:
+      - auth
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TokenRefresh'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/TokenRefresh'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/TokenRefresh'
+        required: true
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TokenRefresh'
+          description: ''
+  /api/cohort-scores/:
+    get:
+      operationId: cohort_scores_retrieve
+      tags:
+      - cohort-scores
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          description: No response body
+  /api/colleges/:
+    get:
+      operationId: colleges_list
+      parameters:
+      - name: ordering
+        required: false
+        in: query
+        description: Which field to use when ordering the results.
+        schema:
+          type: string
+      - name: page
+        required: false
+        in: query
+        description: A page number within the paginated result set.
+        schema:
+          type: integer
+      - name: search
+        required: false
+        in: query
+        description: A search term.
+        schema:
+          type: string
+      tags:
+      - colleges
+      security:
+      - jwtAuth: []
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedCollegeList'
+          description: ''
+    post:
+      operationId: colleges_create
+      tags:
+      - colleges
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/College'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/College'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/College'
+        required: true
+      security:
+      - jwtAuth: []
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/College'
+          description: ''
+  /api/colleges/{id}/:
+    get:
+      operationId: colleges_retrieve
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        required: true
+      tags:
+      - colleges
+      security:
+      - jwtAuth: []
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/College'
+          description: ''
+    put:
+      operationId: colleges_update
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        required: true
+      tags:
+      - colleges
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/College'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/College'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/College'
+        required: true
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/College'
+          description: ''
+    patch:
+      operationId: colleges_partial_update
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        required: true
+      tags:
+      - colleges
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatchedCollege'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PatchedCollege'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PatchedCollege'
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/College'
+          description: ''
+    delete:
+      operationId: colleges_destroy
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        required: true
+      tags:
+      - colleges
+      security:
+      - jwtAuth: []
+      responses:
+        '204':
+          description: No response body
+  /api/core/users/:
+    get:
+      operationId: core_users_list
+      parameters:
+      - name: ordering
+        required: false
+        in: query
+        description: Which field to use when ordering the results.
+        schema:
+          type: string
+      - name: page
+        required: false
+        in: query
+        description: A page number within the paginated result set.
+        schema:
+          type: integer
+      - name: search
+        required: false
+        in: query
+        description: A search term.
+        schema:
+          type: string
+      tags:
+      - core
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedUserList'
+          description: ''
+  /api/courses/:
+    get:
+      operationId: courses_list
+      parameters:
+      - name: ordering
+        required: false
+        in: query
+        description: Which field to use when ordering the results.
+        schema:
+          type: string
+      - name: page
+        required: false
+        in: query
+        description: A page number within the paginated result set.
+        schema:
+          type: integer
+      - name: search
+        required: false
+        in: query
+        description: A search term.
+        schema:
+          type: string
+      tags:
+      - courses
+      security:
+      - jwtAuth: []
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedCourseList'
+          description: ''
+    post:
+      operationId: courses_create
+      tags:
+      - courses
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Course'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/Course'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/Course'
+        required: true
+      security:
+      - jwtAuth: []
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Course'
+          description: ''
+  /api/courses/{id}/:
+    get:
+      operationId: courses_retrieve
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        required: true
+      tags:
+      - courses
+      security:
+      - jwtAuth: []
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Course'
+          description: ''
+    put:
+      operationId: courses_update
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        required: true
+      tags:
+      - courses
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Course'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/Course'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/Course'
+        required: true
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Course'
+          description: ''
+    patch:
+      operationId: courses_partial_update
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        required: true
+      tags:
+      - courses
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatchedCourse'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PatchedCourse'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PatchedCourse'
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Course'
+          description: ''
+    delete:
+      operationId: courses_destroy
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        required: true
+      tags:
+      - courses
+      security:
+      - jwtAuth: []
+      responses:
+        '204':
+          description: No response body
+  /api/criteria/:
+    get:
+      operationId: criteria_list
+      parameters:
+      - name: ordering
+        required: false
+        in: query
+        description: Which field to use when ordering the results.
+        schema:
+          type: string
+      - name: page
+        required: false
+        in: query
+        description: A page number within the paginated result set.
+        schema:
+          type: integer
+      - name: search
+        required: false
+        in: query
+        description: A search term.
+        schema:
+          type: string
+      tags:
+      - criteria
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedEvaluationCriteriaList'
+          description: ''
+  /api/criteria/{id}/:
+    get:
+      operationId: criteria_retrieve
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this evaluation criteria.
+        required: true
+      tags:
+      - criteria
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EvaluationCriteria'
+          description: ''
+  /api/dashboards/academic-overview/:
+    get:
+      operationId: dashboards_academic_overview_retrieve
+      tags:
+      - dashboards
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          description: No response body
+  /api/dashboards/academic-stats/:
+    get:
+      operationId: dashboards_academic_stats_retrieve
+      tags:
+      - dashboards
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          description: No response body
+  /api/dashboards/admin-overview/:
+    get:
+      operationId: dashboards_admin_overview_retrieve
+      tags:
+      - dashboards
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          description: No response body
+  /api/dashboards/admin-stats/:
+    get:
+      operationId: dashboards_admin_stats_retrieve
+      tags:
+      - dashboards
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          description: No response body
+  /api/dashboards/cohort-scores/:
+    get:
+      operationId: dashboards_cohort_scores_retrieve
+      tags:
+      - dashboards
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          description: No response body
+  /api/dashboards/logs-per-week/:
+    get:
+      operationId: dashboards_logs_per_week_retrieve
+      tags:
+      - dashboards
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          description: No response body
+  /api/dashboards/pending-logs/:
+    get:
+      operationId: dashboards_pending_logs_retrieve
+      tags:
+      - dashboards
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          description: No response body
+  /api/dashboards/status-distribution/:
+    get:
+      operationId: dashboards_status_distribution_retrieve
+      tags:
+      - dashboards
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          description: No response body
+  /api/dashboards/student-overview/:
+    get:
+      operationId: dashboards_student_overview_retrieve
+      tags:
+      - dashboards
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          description: No response body
+  /api/dashboards/student-progress/{student_id}/:
+    get:
+      operationId: dashboards_student_progress_retrieve
+      parameters:
+      - in: path
+        name: student_id
+        schema:
+          type: integer
+        required: true
+      tags:
+      - dashboards
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          description: No response body
+  /api/dashboards/student-progress/me/:
+    get:
+      operationId: dashboards_student_progress_me_retrieve
+      tags:
+      - dashboards
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          description: No response body
+  /api/dashboards/student-stats/:
+    get:
+      operationId: dashboards_student_stats_retrieve
+      tags:
+      - dashboards
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          description: No response body
+  /api/dashboards/workplace-interns/{placement_id}/:
+    get:
+      operationId: dashboards_workplace_interns_retrieve
+      parameters:
+      - in: path
+        name: placement_id
+        schema:
+          type: integer
+        required: true
+      tags:
+      - dashboards
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          description: No response body
+  /api/dashboards/workplace-overview/:
+    get:
+      operationId: dashboards_workplace_overview_retrieve
+      tags:
+      - dashboards
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          description: No response body
+  /api/dashboards/workplace-review-activity/:
+    get:
+      operationId: dashboards_workplace_review_activity_retrieve
+      tags:
+      - dashboards
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          description: No response body
+  /api/dashboards/workplace-stats/:
+    get:
+      operationId: dashboards_workplace_stats_retrieve
+      tags:
+      - dashboards
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          description: No response body
+  /api/evaluations/:
+    get:
+      operationId: evaluations_list
+      parameters:
+      - name: page
+        required: false
+        in: query
+        description: A page number within the paginated result set.
+        schema:
+          type: integer
+      tags:
+      - evaluations
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedEvaluationList'
+          description: ''
+    post:
+      operationId: evaluations_create
+      tags:
+      - evaluations
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Evaluation'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/Evaluation'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/Evaluation'
+        required: true
+      security:
+      - jwtAuth: []
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Evaluation'
+          description: ''
+  /api/evaluations/{id}/:
+    get:
+      operationId: evaluations_retrieve
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+        required: true
+      tags:
+      - evaluations
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Evaluation'
+          description: ''
+    put:
+      operationId: evaluations_update
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+        required: true
+      tags:
+      - evaluations
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Evaluation'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/Evaluation'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/Evaluation'
+        required: true
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Evaluation'
+          description: ''
+    patch:
+      operationId: evaluations_partial_update
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+        required: true
+      tags:
+      - evaluations
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatchedEvaluation'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PatchedEvaluation'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PatchedEvaluation'
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Evaluation'
+          description: ''
+    delete:
+      operationId: evaluations_destroy
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+        required: true
+      tags:
+      - evaluations
+      security:
+      - jwtAuth: []
+      responses:
+        '204':
+          description: No response body
+  /api/evaluations/pending/:
+    get:
+      operationId: evaluations_pending_retrieve
+      tags:
+      - evaluations
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Evaluation'
+          description: ''
+  /api/health/:
+    get:
+      operationId: health_retrieve
+      tags:
+      - health
+      security:
+      - jwtAuth: []
+      - {}
+      responses:
+        '200':
+          description: No response body
+  /api/logbook/logs/:
+    get:
+      operationId: logbook_logs_list
+      parameters:
+      - name: ordering
+        required: false
+        in: query
+        description: Which field to use when ordering the results.
+        schema:
+          type: string
+      - name: page
+        required: false
+        in: query
+        description: A page number within the paginated result set.
+        schema:
+          type: integer
+      - name: search
+        required: false
+        in: query
+        description: A search term.
+        schema:
+          type: string
+      - in: query
+        name: status
+        schema:
+          type: string
+          enum:
+          - APPROVED
+          - DRAFT
+          - MISSED
+          - REVIEWED
+          - SUBMITTED
+        description: |-
+          * `DRAFT` - Draft
+          * `MISSED` - Missed
+          * `SUBMITTED` - Submitted
+          * `REVIEWED` - Reviewed
+          * `APPROVED` - Approved
+      - in: query
+        name: submitted_after
+        schema:
+          type: string
+          format: date
+      - in: query
+        name: submitted_before
+        schema:
+          type: string
+          format: date
+      - in: query
+        name: week_number
+        schema:
+          type: integer
+      tags:
+      - logbook
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedLogReadList'
+          description: ''
+    post:
+      operationId: logbook_logs_create
+      tags:
+      - logbook
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LogWrite'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/LogWrite'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/LogWrite'
+      security:
+      - jwtAuth: []
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LogWrite'
+          description: ''
+  /api/logbook/logs/{log_id}/history/:
+    get:
+      operationId: logbook_logs_history_retrieve
+      parameters:
+      - in: path
+        name: log_id
+        schema:
+          type: integer
+        required: true
+      tags:
+      - logbook
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          description: No response body
+  /api/logbook/logs/{id}/:
+    get:
+      operationId: logbook_logs_retrieve
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this weekly log.
+        required: true
+      tags:
+      - logbook
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LogRead'
+          description: ''
+    put:
+      operationId: logbook_logs_update
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this weekly log.
+        required: true
+      tags:
+      - logbook
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LogWrite'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/LogWrite'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/LogWrite'
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LogWrite'
+          description: ''
+    patch:
+      operationId: logbook_logs_partial_update
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this weekly log.
+        required: true
+      tags:
+      - logbook
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatchedLogWrite'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PatchedLogWrite'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PatchedLogWrite'
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LogWrite'
+          description: ''
+    delete:
+      operationId: logbook_logs_destroy
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this weekly log.
+        required: true
+      tags:
+      - logbook
+      security:
+      - jwtAuth: []
+      responses:
+        '204':
+          description: No response body
+  /api/logbook/logs/{id}/approve/:
+    post:
+      operationId: logbook_logs_approve_create
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this weekly log.
+        required: true
+      tags:
+      - logbook
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LogRead'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/LogRead'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/LogRead'
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LogRead'
+          description: ''
+  /api/logbook/logs/{id}/review/:
+    post:
+      operationId: logbook_logs_review_create
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this weekly log.
+        required: true
+      tags:
+      - logbook
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LogRead'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/LogRead'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/LogRead'
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LogRead'
+          description: ''
+  /api/logbook/logs/{id}/send_back/:
+    post:
+      operationId: logbook_logs_send_back_create
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this weekly log.
+        required: true
+      tags:
+      - logbook
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LogRead'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/LogRead'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/LogRead'
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LogRead'
+          description: ''
+  /api/logbook/logs/{id}/submit/:
+    post:
+      operationId: logbook_logs_submit_create
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this weekly log.
+        required: true
+      tags:
+      - logbook
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LogRead'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/LogRead'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/LogRead'
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LogRead'
+          description: ''
+  /api/logbook/logs/summary/:
+    get:
+      operationId: logbook_logs_summary_retrieve
+      tags:
+      - logbook
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LogRead'
+          description: ''
+  /api/logs/:
+    get:
+      operationId: logs_list
+      parameters:
+      - name: ordering
+        required: false
+        in: query
+        description: Which field to use when ordering the results.
+        schema:
+          type: string
+      - name: page
+        required: false
+        in: query
+        description: A page number within the paginated result set.
+        schema:
+          type: integer
+      - name: search
+        required: false
+        in: query
+        description: A search term.
+        schema:
+          type: string
+      - in: query
+        name: status
+        schema:
+          type: string
+          enum:
+          - APPROVED
+          - DRAFT
+          - MISSED
+          - REVIEWED
+          - SUBMITTED
+        description: |-
+          * `DRAFT` - Draft
+          * `MISSED` - Missed
+          * `SUBMITTED` - Submitted
+          * `REVIEWED` - Reviewed
+          * `APPROVED` - Approved
+      - in: query
+        name: submitted_after
+        schema:
+          type: string
+          format: date
+      - in: query
+        name: submitted_before
+        schema:
+          type: string
+          format: date
+      - in: query
+        name: week_number
+        schema:
+          type: integer
+      tags:
+      - logs
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedLogReadList'
+          description: ''
+    post:
+      operationId: logs_create
+      tags:
+      - logs
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LogWrite'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/LogWrite'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/LogWrite'
+      security:
+      - jwtAuth: []
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LogWrite'
+          description: ''
+  /api/logs-per-week/:
+    get:
+      operationId: logs_per_week_retrieve
+      tags:
+      - logs-per-week
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          description: No response body
+  /api/logs/{log_id}/history/:
+    get:
+      operationId: logs_history_retrieve
+      parameters:
+      - in: path
+        name: log_id
+        schema:
+          type: integer
+        required: true
+      tags:
+      - logs
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          description: No response body
+  /api/logs/{id}/:
+    get:
+      operationId: logs_retrieve
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this weekly log.
+        required: true
+      tags:
+      - logs
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LogRead'
+          description: ''
+    put:
+      operationId: logs_update
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this weekly log.
+        required: true
+      tags:
+      - logs
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LogWrite'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/LogWrite'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/LogWrite'
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LogWrite'
+          description: ''
+    patch:
+      operationId: logs_partial_update
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this weekly log.
+        required: true
+      tags:
+      - logs
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatchedLogWrite'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PatchedLogWrite'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PatchedLogWrite'
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LogWrite'
+          description: ''
+    delete:
+      operationId: logs_destroy
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this weekly log.
+        required: true
+      tags:
+      - logs
+      security:
+      - jwtAuth: []
+      responses:
+        '204':
+          description: No response body
+  /api/logs/{id}/approve/:
+    post:
+      operationId: logs_approve_create
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this weekly log.
+        required: true
+      tags:
+      - logs
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LogRead'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/LogRead'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/LogRead'
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LogRead'
+          description: ''
+  /api/logs/{id}/review/:
+    post:
+      operationId: logs_review_create
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this weekly log.
+        required: true
+      tags:
+      - logs
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LogRead'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/LogRead'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/LogRead'
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LogRead'
+          description: ''
+  /api/logs/{id}/send_back/:
+    post:
+      operationId: logs_send_back_create
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this weekly log.
+        required: true
+      tags:
+      - logs
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LogRead'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/LogRead'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/LogRead'
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LogRead'
+          description: ''
+  /api/logs/{id}/submit/:
+    post:
+      operationId: logs_submit_create
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this weekly log.
+        required: true
+      tags:
+      - logs
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LogRead'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/LogRead'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/LogRead'
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LogRead'
+          description: ''
+  /api/logs/summary/:
+    get:
+      operationId: logs_summary_retrieve
+      tags:
+      - logs
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LogRead'
+          description: ''
+  /api/notifications/:
+    get:
+      operationId: notifications_list
+      parameters:
+      - name: page
+        required: false
+        in: query
+        description: A page number within the paginated result set.
+        schema:
+          type: integer
+      tags:
+      - notifications
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedNotificationList'
+          description: ''
+    post:
+      operationId: notifications_create
+      tags:
+      - notifications
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Notification'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/Notification'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/Notification'
+      security:
+      - jwtAuth: []
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Notification'
+          description: ''
+  /api/notifications/{id}/:
+    get:
+      operationId: notifications_retrieve
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+        required: true
+      tags:
+      - notifications
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Notification'
+          description: ''
+    put:
+      operationId: notifications_update
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+        required: true
+      tags:
+      - notifications
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Notification'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/Notification'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/Notification'
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Notification'
+          description: ''
+    patch:
+      operationId: notifications_partial_update
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+        required: true
+      tags:
+      - notifications
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatchedNotification'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PatchedNotification'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PatchedNotification'
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Notification'
+          description: ''
+    delete:
+      operationId: notifications_destroy
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+        required: true
+      tags:
+      - notifications
+      security:
+      - jwtAuth: []
+      responses:
+        '204':
+          description: No response body
+  /api/notifications/{id}/mark_as_read/:
+    patch:
+      operationId: notifications_mark_as_read_partial_update
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+        required: true
+      tags:
+      - notifications
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatchedNotification'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PatchedNotification'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PatchedNotification'
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Notification'
+          description: ''
+  /api/notifications/mark_all_read/:
+    post:
+      operationId: notifications_mark_all_read_create
+      tags:
+      - notifications
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Notification'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/Notification'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/Notification'
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Notification'
+          description: ''
+  /api/pending-logs/:
+    get:
+      operationId: pending_logs_retrieve
+      tags:
+      - pending-logs
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          description: No response body
+  /api/placements/:
+    get:
+      operationId: placements_list
+      parameters:
+      - name: ordering
+        required: false
+        in: query
+        description: Which field to use when ordering the results.
+        schema:
+          type: string
+      - name: page
+        required: false
+        in: query
+        description: A page number within the paginated result set.
+        schema:
+          type: integer
+      - name: search
+        required: false
+        in: query
+        description: A search term.
+        schema:
+          type: string
+      tags:
+      - placements
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedPlacementList'
+          description: ''
+    post:
+      operationId: placements_create
+      tags:
+      - placements
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Placement'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/Placement'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/Placement'
+        required: true
+      security:
+      - jwtAuth: []
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Placement'
+          description: ''
+  /api/placements/{id}/:
+    get:
+      operationId: placements_retrieve
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+        required: true
+      tags:
+      - placements
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Placement'
+          description: ''
+    put:
+      operationId: placements_update
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+        required: true
+      tags:
+      - placements
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Placement'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/Placement'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/Placement'
+        required: true
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Placement'
+          description: ''
+    patch:
+      operationId: placements_partial_update
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+        required: true
+      tags:
+      - placements
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatchedPlacement'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PatchedPlacement'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PatchedPlacement'
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Placement'
+          description: ''
+    delete:
+      operationId: placements_destroy
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+        required: true
+      tags:
+      - placements
+      security:
+      - jwtAuth: []
+      responses:
+        '204':
+          description: No response body
+  /api/placements/{id}/cancel/:
+    post:
+      operationId: placements_cancel_create
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+        required: true
+      tags:
+      - placements
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Placement'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/Placement'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/Placement'
+        required: true
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Placement'
+          description: ''
+  /api/placements/companies/:
+    get:
+      operationId: placements_companies_list
+      parameters:
+      - name: ordering
+        required: false
+        in: query
+        description: Which field to use when ordering the results.
+        schema:
+          type: string
+      - name: page
+        required: false
+        in: query
+        description: A page number within the paginated result set.
+        schema:
+          type: integer
+      - name: search
+        required: false
+        in: query
+        description: A search term.
+        schema:
+          type: string
+      tags:
+      - placements
+      security:
+      - jwtAuth: []
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedCompanyList'
+          description: ''
+    post:
+      operationId: placements_companies_create
+      tags:
+      - placements
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Company'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/Company'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/Company'
+        required: true
+      security:
+      - jwtAuth: []
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Company'
+          description: ''
+  /api/placements/companies/{id}/:
+    get:
+      operationId: placements_companies_retrieve
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this company.
+        required: true
+      tags:
+      - placements
+      security:
+      - jwtAuth: []
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Company'
+          description: ''
+    put:
+      operationId: placements_companies_update
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this company.
+        required: true
+      tags:
+      - placements
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Company'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/Company'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/Company'
+        required: true
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Company'
+          description: ''
+    patch:
+      operationId: placements_companies_partial_update
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this company.
+        required: true
+      tags:
+      - placements
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatchedCompany'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PatchedCompany'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PatchedCompany'
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Company'
+          description: ''
+    delete:
+      operationId: placements_companies_destroy
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this company.
+        required: true
+      tags:
+      - placements
+      security:
+      - jwtAuth: []
+      responses:
+        '204':
+          description: No response body
+  /api/placements/companies/{id}/assign_supervisors/:
+    post:
+      operationId: placements_companies_assign_supervisors_create
+      description: Assign workplace supervisors to a company.
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this company.
+        required: true
+      tags:
+      - placements
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Company'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/Company'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/Company'
+        required: true
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Company'
+          description: ''
+  /api/placements/placement_options/:
+    get:
+      operationId: placements_placement_options_retrieve
+      tags:
+      - placements
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Placement'
+          description: ''
+  /api/placements/test/:
+    get:
+      operationId: placements_test_retrieve
+      tags:
+      - placements
+      security:
+      - jwtAuth: []
+      - {}
+      responses:
+        '200':
+          description: No response body
+  /api/reviews/criteria/:
+    get:
+      operationId: reviews_criteria_list
+      parameters:
+      - name: ordering
+        required: false
+        in: query
+        description: Which field to use when ordering the results.
+        schema:
+          type: string
+      - name: page
+        required: false
+        in: query
+        description: A page number within the paginated result set.
+        schema:
+          type: integer
+      - name: search
+        required: false
+        in: query
+        description: A search term.
+        schema:
+          type: string
+      tags:
+      - reviews
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedEvaluationCriteriaList'
+          description: ''
+  /api/reviews/criteria/{id}/:
+    get:
+      operationId: reviews_criteria_retrieve
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this evaluation criteria.
+        required: true
+      tags:
+      - reviews
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EvaluationCriteria'
+          description: ''
+  /api/reviews/evaluations/:
+    get:
+      operationId: reviews_evaluations_list
+      parameters:
+      - name: page
+        required: false
+        in: query
+        description: A page number within the paginated result set.
+        schema:
+          type: integer
+      tags:
+      - reviews
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedEvaluationList'
+          description: ''
+    post:
+      operationId: reviews_evaluations_create
+      tags:
+      - reviews
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Evaluation'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/Evaluation'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/Evaluation'
+        required: true
+      security:
+      - jwtAuth: []
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Evaluation'
+          description: ''
+  /api/reviews/evaluations/{id}/:
+    get:
+      operationId: reviews_evaluations_retrieve
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+        required: true
+      tags:
+      - reviews
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Evaluation'
+          description: ''
+    put:
+      operationId: reviews_evaluations_update
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+        required: true
+      tags:
+      - reviews
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Evaluation'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/Evaluation'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/Evaluation'
+        required: true
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Evaluation'
+          description: ''
+    patch:
+      operationId: reviews_evaluations_partial_update
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+        required: true
+      tags:
+      - reviews
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatchedEvaluation'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PatchedEvaluation'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PatchedEvaluation'
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Evaluation'
+          description: ''
+    delete:
+      operationId: reviews_evaluations_destroy
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+        required: true
+      tags:
+      - reviews
+      security:
+      - jwtAuth: []
+      responses:
+        '204':
+          description: No response body
+  /api/reviews/evaluations/pending/:
+    get:
+      operationId: reviews_evaluations_pending_retrieve
+      tags:
+      - reviews
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Evaluation'
+          description: ''
+  /api/reviews/logs/{log_id}/history/:
+    get:
+      operationId: reviews_logs_history_retrieve
+      parameters:
+      - in: path
+        name: log_id
+        schema:
+          type: integer
+        required: true
+      tags:
+      - reviews
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          description: No response body
+  /api/reviews/notifications/:
+    get:
+      operationId: reviews_notifications_list
+      parameters:
+      - name: page
+        required: false
+        in: query
+        description: A page number within the paginated result set.
+        schema:
+          type: integer
+      tags:
+      - reviews
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedNotificationList'
+          description: ''
+    post:
+      operationId: reviews_notifications_create
+      tags:
+      - reviews
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Notification'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/Notification'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/Notification'
+      security:
+      - jwtAuth: []
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Notification'
+          description: ''
+  /api/reviews/notifications/{id}/:
+    get:
+      operationId: reviews_notifications_retrieve
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+        required: true
+      tags:
+      - reviews
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Notification'
+          description: ''
+    put:
+      operationId: reviews_notifications_update
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+        required: true
+      tags:
+      - reviews
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Notification'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/Notification'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/Notification'
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Notification'
+          description: ''
+    patch:
+      operationId: reviews_notifications_partial_update
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+        required: true
+      tags:
+      - reviews
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatchedNotification'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PatchedNotification'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PatchedNotification'
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Notification'
+          description: ''
+    delete:
+      operationId: reviews_notifications_destroy
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+        required: true
+      tags:
+      - reviews
+      security:
+      - jwtAuth: []
+      responses:
+        '204':
+          description: No response body
+  /api/reviews/notifications/{id}/mark_as_read/:
+    patch:
+      operationId: reviews_notifications_mark_as_read_partial_update
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+        required: true
+      tags:
+      - reviews
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatchedNotification'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PatchedNotification'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PatchedNotification'
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Notification'
+          description: ''
+  /api/reviews/notifications/mark_all_read/:
+    post:
+      operationId: reviews_notifications_mark_all_read_create
+      tags:
+      - reviews
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Notification'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/Notification'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/Notification'
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Notification'
+          description: ''
+  /api/status-distribution/:
+    get:
+      operationId: status_distribution_retrieve
+      tags:
+      - status-distribution
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          description: No response body
+  /api/student-overview/:
+    get:
+      operationId: student_overview_retrieve
+      tags:
+      - student-overview
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          description: No response body
+  /api/student-progress/{student_id}/:
+    get:
+      operationId: student_progress_retrieve
+      parameters:
+      - in: path
+        name: student_id
+        schema:
+          type: integer
+        required: true
+      tags:
+      - student-progress
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          description: No response body
+  /api/student-progress/me/:
+    get:
+      operationId: student_progress_me_retrieve
+      tags:
+      - student-progress
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          description: No response body
+  /api/student-stats/:
+    get:
+      operationId: student_stats_retrieve
+      tags:
+      - student-stats
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          description: No response body
+  /api/test/:
+    get:
+      operationId: test_retrieve
+      tags:
+      - test
+      security:
+      - jwtAuth: []
+      - {}
+      responses:
+        '200':
+          description: No response body
+  /api/workplace-interns/{placement_id}/:
+    get:
+      operationId: workplace_interns_retrieve
+      parameters:
+      - in: path
+        name: placement_id
+        schema:
+          type: integer
+        required: true
+      tags:
+      - workplace-interns
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          description: No response body
+  /api/workplace-overview/:
+    get:
+      operationId: workplace_overview_retrieve
+      tags:
+      - workplace-overview
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          description: No response body
+  /api/workplace-review-activity/:
+    get:
+      operationId: workplace_review_activity_retrieve
+      tags:
+      - workplace-review-activity
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          description: No response body
+  /api/workplace-stats/:
+    get:
+      operationId: workplace_stats_retrieve
+      tags:
+      - workplace-stats
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          description: No response body
+components:
+  schemas:
+    AdminUser:
+      type: object
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        email:
+          type: string
+          format: email
+          maxLength: 254
+        first_name:
+          type: string
+          maxLength: 150
+        last_name:
+          type: string
+          maxLength: 150
+        fullname:
+          type: string
+          readOnly: true
+        role:
+          $ref: '#/components/schemas/RoleEnum'
+        phone:
+          type: string
+          nullable: true
+          maxLength: 20
+        is_active:
+          type: boolean
+          title: Active
+          description: Designates whether this user should be treated as active. Unselect
+            this instead of deleting accounts.
+        company:
+          type: string
+          readOnly: true
+        company_id:
+          type: integer
+          writeOnly: true
+          nullable: true
+        course:
+          type: string
+          readOnly: true
+        course_id:
+          type: integer
+          writeOnly: true
+          nullable: true
+        college:
+          type: string
+          readOnly: true
+        college_id:
+          type: integer
+          writeOnly: true
+          nullable: true
+        password:
+          type: string
+          writeOnly: true
+        date_joined:
+          type: string
+          format: date-time
+          readOnly: true
+      required:
+      - college
+      - company
+      - course
+      - date_joined
+      - email
+      - fullname
+      - id
+    College:
+      type: object
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        name:
+          type: string
+          maxLength: 255
+        academic_supervisor_count:
+          type: integer
+          readOnly: true
+        course_count:
+          type: integer
+          readOnly: true
+      required:
+      - academic_supervisor_count
+      - course_count
+      - id
+      - name
+    Company:
+      type: object
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        name:
+          type: string
+          maxLength: 255
+        supervisor_count:
+          type: integer
+          readOnly: true
+        supervisors:
+          type: string
+          readOnly: true
+        supervisor_ids:
+          type: array
+          items:
+            type: integer
+          writeOnly: true
+      required:
+      - id
+      - name
+      - supervisor_count
+      - supervisors
+    Course:
+      type: object
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        name:
+          type: string
+          maxLength: 255
+        college:
+          type: string
+          readOnly: true
+        college_id:
+          type: integer
+          writeOnly: true
+          nullable: true
+      required:
+      - college
+      - id
+      - name
+    CustomTokenObtainPair:
+      type: object
+      properties:
+        email:
+          type: string
+          writeOnly: true
+        password:
+          type: string
+          writeOnly: true
+      required:
+      - email
+      - password
+    CustomUser:
+      type: object
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        email:
+          type: string
+          format: email
+          maxLength: 254
+        first_name:
+          type: string
+          maxLength: 150
+        last_name:
+          type: string
+          maxLength: 150
+        role:
+          $ref: '#/components/schemas/RoleEnum'
+        fullname:
+          type: string
+          readOnly: true
+        full_name:
+          type: string
+          readOnly: true
+        phone:
+          type: string
+          nullable: true
+          maxLength: 20
+        company:
+          type: string
+          readOnly: true
+        course:
+          type: string
+          readOnly: true
+        college:
+          type: string
+          readOnly: true
+        is_active:
+          type: boolean
+          title: Active
+          description: Designates whether this user should be treated as active. Unselect
+            this instead of deleting accounts.
+      required:
+      - college
+      - company
+      - course
+      - email
+      - full_name
+      - fullname
+      - id
+    Evaluation:
+      type: object
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        log:
+          type: integer
+        student_name:
+          type: string
+          readOnly: true
+        company:
+          type: string
+          readOnly: true
+        week_number:
+          type: integer
+          readOnly: true
+        status:
+          type: string
+          readOnly: true
+        objectives:
+          type: string
+        rating:
+          type: integer
+          maximum: 32767
+          minimum: 0
+          nullable: true
+        comments:
+          type: string
+        recommendation:
+          type: string
+        criteria_scores: {}
+        total_score:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,4}(?:\.\d{0,2})?$
+          readOnly: true
+        log_submitted_at:
+          type: string
+          format: date-time
+          readOnly: true
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+        updated_at:
+          type: string
+          format: date-time
+          readOnly: true
+      required:
+      - company
+      - created_at
+      - id
+      - log
+      - log_submitted_at
+      - status
+      - student_name
+      - total_score
+      - updated_at
+      - week_number
+    EvaluationCriteria:
+      type: object
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        name:
+          type: string
+          maxLength: 255
+        description:
+          type: string
+        max_score:
+          type: integer
+          maximum: 2147483647
+          minimum: 0
+        weight:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,3}(?:\.\d{0,2})?$
+      required:
+      - description
+      - id
+      - max_score
+      - name
+      - weight
+    LogRead:
+      type: object
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        intern_name:
+          type: string
+          readOnly: true
+        placement:
+          type: integer
+          readOnly: true
+        placement_company:
+          type: string
+          readOnly: true
+        week_number:
+          type: integer
+          readOnly: true
+        activities:
+          type: string
+          readOnly: true
+        learning_points:
+          type: string
+          readOnly: true
+        status:
+          allOf:
+          - $ref: '#/components/schemas/LogReadStatusEnum'
+          readOnly: true
+        submitted_at:
+          type: string
+          format: date-time
+          readOnly: true
+          nullable: true
+        deadline_at:
+          type: string
+          readOnly: true
+        overdue:
+          type: boolean
+          readOnly: true
+        can_edit:
+          type: string
+          readOnly: true
+        latest_review_comment:
+          type: string
+          readOnly: true
+      required:
+      - activities
+      - can_edit
+      - deadline_at
+      - id
+      - intern_name
+      - latest_review_comment
+      - learning_points
+      - overdue
+      - placement
+      - placement_company
+      - status
+      - submitted_at
+      - week_number
+    LogReadStatusEnum:
+      enum:
+      - DRAFT
+      - MISSED
+      - SUBMITTED
+      - REVIEWED
+      - APPROVED
+      type: string
+      description: |-
+        * `DRAFT` - Draft
+        * `MISSED` - Missed
+        * `SUBMITTED` - Submitted
+        * `REVIEWED` - Reviewed
+        * `APPROVED` - Approved
+    LogWrite:
+      type: object
+      properties:
+        activities:
+          type: string
+        learning_points:
+          type: string
+    Notification:
+      type: object
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        message:
+          type: string
+          readOnly: true
+        notification_type:
+          allOf:
+          - $ref: '#/components/schemas/NotificationTypeEnum'
+          readOnly: true
+        is_read:
+          type: boolean
+          readOnly: true
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+      required:
+      - created_at
+      - id
+      - is_read
+      - message
+      - notification_type
+    NotificationTypeEnum:
+      enum:
+      - LOG_SUBMITTED
+      - LOG_REVIEWED
+      - LOG_SENT_BACK
+      - LOG_APPROVED
+      - SCORE_ASSIGNED
+      type: string
+      description: |-
+        * `LOG_SUBMITTED` - Log Submitted
+        * `LOG_REVIEWED` - Log Reviewed
+        * `LOG_SENT_BACK` - Log Sent Back
+        * `LOG_APPROVED` - Log Approved
+        * `SCORE_ASSIGNED` - Score Assigned
+    PaginatedAdminUserList:
+      type: object
+      required:
+      - count
+      - results
+      properties:
+        count:
+          type: integer
+          example: 123
+        next:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=4
+        previous:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=2
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/AdminUser'
+    PaginatedCollegeList:
+      type: object
+      required:
+      - count
+      - results
+      properties:
+        count:
+          type: integer
+          example: 123
+        next:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=4
+        previous:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=2
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/College'
+    PaginatedCompanyList:
+      type: object
+      required:
+      - count
+      - results
+      properties:
+        count:
+          type: integer
+          example: 123
+        next:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=4
+        previous:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=2
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/Company'
+    PaginatedCourseList:
+      type: object
+      required:
+      - count
+      - results
+      properties:
+        count:
+          type: integer
+          example: 123
+        next:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=4
+        previous:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=2
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/Course'
+    PaginatedEvaluationCriteriaList:
+      type: object
+      required:
+      - count
+      - results
+      properties:
+        count:
+          type: integer
+          example: 123
+        next:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=4
+        previous:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=2
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/EvaluationCriteria'
+    PaginatedEvaluationList:
+      type: object
+      required:
+      - count
+      - results
+      properties:
+        count:
+          type: integer
+          example: 123
+        next:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=4
+        previous:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=2
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/Evaluation'
+    PaginatedLogReadList:
+      type: object
+      required:
+      - count
+      - results
+      properties:
+        count:
+          type: integer
+          example: 123
+        next:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=4
+        previous:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=2
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/LogRead'
+    PaginatedNotificationList:
+      type: object
+      required:
+      - count
+      - results
+      properties:
+        count:
+          type: integer
+          example: 123
+        next:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=4
+        previous:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=2
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/Notification'
+    PaginatedPlacementList:
+      type: object
+      required:
+      - count
+      - results
+      properties:
+        count:
+          type: integer
+          example: 123
+        next:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=4
+        previous:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=2
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/Placement'
+    PaginatedUserList:
+      type: object
+      required:
+      - count
+      - results
+      properties:
+        count:
+          type: integer
+          example: 123
+        next:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=4
+        previous:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=2
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/User'
+    PatchedAdminUser:
+      type: object
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        email:
+          type: string
+          format: email
+          maxLength: 254
+        first_name:
+          type: string
+          maxLength: 150
+        last_name:
+          type: string
+          maxLength: 150
+        fullname:
+          type: string
+          readOnly: true
+        role:
+          $ref: '#/components/schemas/RoleEnum'
+        phone:
+          type: string
+          nullable: true
+          maxLength: 20
+        is_active:
+          type: boolean
+          title: Active
+          description: Designates whether this user should be treated as active. Unselect
+            this instead of deleting accounts.
+        company:
+          type: string
+          readOnly: true
+        company_id:
+          type: integer
+          writeOnly: true
+          nullable: true
+        course:
+          type: string
+          readOnly: true
+        course_id:
+          type: integer
+          writeOnly: true
+          nullable: true
+        college:
+          type: string
+          readOnly: true
+        college_id:
+          type: integer
+          writeOnly: true
+          nullable: true
+        password:
+          type: string
+          writeOnly: true
+        date_joined:
+          type: string
+          format: date-time
+          readOnly: true
+    PatchedCollege:
+      type: object
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        name:
+          type: string
+          maxLength: 255
+        academic_supervisor_count:
+          type: integer
+          readOnly: true
+        course_count:
+          type: integer
+          readOnly: true
+    PatchedCompany:
+      type: object
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        name:
+          type: string
+          maxLength: 255
+        supervisor_count:
+          type: integer
+          readOnly: true
+        supervisors:
+          type: string
+          readOnly: true
+        supervisor_ids:
+          type: array
+          items:
+            type: integer
+          writeOnly: true
+    PatchedCourse:
+      type: object
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        name:
+          type: string
+          maxLength: 255
+        college:
+          type: string
+          readOnly: true
+        college_id:
+          type: integer
+          writeOnly: true
+          nullable: true
+    PatchedEvaluation:
+      type: object
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        log:
+          type: integer
+        student_name:
+          type: string
+          readOnly: true
+        company:
+          type: string
+          readOnly: true
+        week_number:
+          type: integer
+          readOnly: true
+        status:
+          type: string
+          readOnly: true
+        objectives:
+          type: string
+        rating:
+          type: integer
+          maximum: 32767
+          minimum: 0
+          nullable: true
+        comments:
+          type: string
+        recommendation:
+          type: string
+        criteria_scores: {}
+        total_score:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,4}(?:\.\d{0,2})?$
+          readOnly: true
+        log_submitted_at:
+          type: string
+          format: date-time
+          readOnly: true
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+        updated_at:
+          type: string
+          format: date-time
+          readOnly: true
+    PatchedLogWrite:
+      type: object
+      properties:
+        activities:
+          type: string
+        learning_points:
+          type: string
+    PatchedNotification:
+      type: object
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        message:
+          type: string
+          readOnly: true
+        notification_type:
+          allOf:
+          - $ref: '#/components/schemas/NotificationTypeEnum'
+          readOnly: true
+        is_read:
+          type: boolean
+          readOnly: true
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+    PatchedPlacement:
+      type: object
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        student:
+          allOf:
+          - $ref: '#/components/schemas/CustomUser'
+          readOnly: true
+        student_id:
+          type: integer
+          writeOnly: true
+        workplace_supervisor:
+          allOf:
+          - $ref: '#/components/schemas/CustomUser'
+          readOnly: true
+        workplace_supervisor_id:
+          type: integer
+          writeOnly: true
+        academic_supervisor:
+          allOf:
+          - $ref: '#/components/schemas/CustomUser'
+          readOnly: true
+        academic_supervisor_id:
+          type: integer
+          writeOnly: true
+          nullable: true
+        company:
+          allOf:
+          - $ref: '#/components/schemas/Company'
+          readOnly: true
+        company_id:
+          type: integer
+          writeOnly: true
+          nullable: true
+        company_name:
+          type: string
+          maxLength: 255
+        start_date:
+          type: string
+          format: date
+        end_date:
+          type: string
+          format: date
+        status:
+          allOf:
+          - $ref: '#/components/schemas/PlacementStatusEnum'
+          readOnly: true
+    PatchedUserUpdate:
+      type: object
+      properties:
+        full_name:
+          type: string
+        first_name:
+          type: string
+        last_name:
+          type: string
+        phone:
+          type: string
+          nullable: true
+          maxLength: 20
+    Placement:
+      type: object
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        student:
+          allOf:
+          - $ref: '#/components/schemas/CustomUser'
+          readOnly: true
+        student_id:
+          type: integer
+          writeOnly: true
+        workplace_supervisor:
+          allOf:
+          - $ref: '#/components/schemas/CustomUser'
+          readOnly: true
+        workplace_supervisor_id:
+          type: integer
+          writeOnly: true
+        academic_supervisor:
+          allOf:
+          - $ref: '#/components/schemas/CustomUser'
+          readOnly: true
+        academic_supervisor_id:
+          type: integer
+          writeOnly: true
+          nullable: true
+        company:
+          allOf:
+          - $ref: '#/components/schemas/Company'
+          readOnly: true
+        company_id:
+          type: integer
+          writeOnly: true
+          nullable: true
+        company_name:
+          type: string
+          maxLength: 255
+        start_date:
+          type: string
+          format: date
+        end_date:
+          type: string
+          format: date
+        status:
+          allOf:
+          - $ref: '#/components/schemas/PlacementStatusEnum'
+          readOnly: true
+      required:
+      - academic_supervisor
+      - company
+      - end_date
+      - id
+      - start_date
+      - status
+      - student
+      - student_id
+      - workplace_supervisor
+      - workplace_supervisor_id
+    PlacementStatusEnum:
+      enum:
+      - PENDING
+      - ACTIVE
+      - COMPLETED
+      - CANCELLED
+      type: string
+      description: |-
+        * `PENDING` - Pending
+        * `ACTIVE` - Active
+        * `COMPLETED` - Completed
+        * `CANCELLED` - Cancelled
+    Register:
+      type: object
+      properties:
+        email:
+          type: string
+          format: email
+          maxLength: 254
+        role:
+          $ref: '#/components/schemas/RoleEnum'
+        first_name:
+          type: string
+        last_name:
+          type: string
+        password:
+          type: string
+          writeOnly: true
+        confirm_password:
+          type: string
+          writeOnly: true
+        company_id:
+          type: integer
+          writeOnly: true
+          nullable: true
+        college_id:
+          type: integer
+          writeOnly: true
+          nullable: true
+        course_id:
+          type: integer
+          writeOnly: true
+          nullable: true
+        course_name:
+          type: string
+          writeOnly: true
+          nullable: true
+      required:
+      - confirm_password
+      - email
+      - password
+    RoleEnum:
+      enum:
+      - student
+      - workplace_supervisor
+      - academic_supervisor
+      - admin
+      type: string
+      description: |-
+        * `student` - Student
+        * `workplace_supervisor` - Workplace Supervisor
+        * `academic_supervisor` - Academic Supervisor
+        * `admin` - Admin
+    TokenRefresh:
+      type: object
+      properties:
+        access:
+          type: string
+          readOnly: true
+        refresh:
+          type: string
+      required:
+      - access
+      - refresh
+    User:
+      type: object
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        email:
+          type: string
+          format: email
+          maxLength: 254
+        role:
+          $ref: '#/components/schemas/RoleEnum'
+        full_name:
+          type: string
+          readOnly: true
+      required:
+      - email
+      - full_name
+      - id
+    UserUpdate:
+      type: object
+      properties:
+        full_name:
+          type: string
+        first_name:
+          type: string
+        last_name:
+          type: string
+        phone:
+          type: string
+          nullable: true
+          maxLength: 20
+  securitySchemes:
+    jwtAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
