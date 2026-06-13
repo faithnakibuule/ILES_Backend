@@ -180,6 +180,9 @@ class LogViewSet(viewsets.ModelViewSet):
         if log.intern != request.user:
             raise PermissionDenied("You can only submit your own weekly log.")
 
+        if log.status == "SUBMITTED":
+            return Response({"message": "Log submitted successfully."})
+
         validate_required_log_fields(log)
 
         if can_transition(log, "SUBMITTED", request.user.role):

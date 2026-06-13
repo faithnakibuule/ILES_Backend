@@ -90,8 +90,16 @@ class AdminDashboardOverviewView(APIView):
         if request.user.role != "admin":
             return Response({"detail": "Forbidden"}, status=status.HTTP_403_FORBIDDEN)
 
-        active_placements = InternshipPlacement.objects.filter(status="ACTIVE").count()
-        completed_placements = InternshipPlacement.objects.filter(status="COMPLETED").count()
+        today = timezone.localdate()
+        active_placements = InternshipPlacement.objects.filter(
+            status__in=["ACTIVE", "PENDING", "COMPLETED"],
+            start_date__lte=today,
+            end_date__gte=today,
+        ).count()
+        completed_placements = InternshipPlacement.objects.filter(
+            status__in=["ACTIVE", "PENDING", "COMPLETED"],
+            end_date__lt=today,
+        ).count()
         total_logs = WeeklyLog.objects.count()
         approved_logs = WeeklyLog.objects.filter(status="APPROVED").count()
         pending_evaluations = WeeklyLog.objects.filter(status="REVIEWED").count()

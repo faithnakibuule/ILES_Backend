@@ -1,6 +1,7 @@
 from pathlib import Path
 from datetime import timedelta
 import sys
+import warnings
 import dj_database_url
 
 from decouple import config, Csv
@@ -146,7 +147,7 @@ AUTH_PASSWORD_VALIDATORS = [
 ]
 
 LANGUAGE_CODE = 'en-us'
-TIME_ZONE = 'UTC'
+TIME_ZONE = 'Africa/Nairobi'
 USE_I18N = True
 USE_TZ = True
 
@@ -217,36 +218,48 @@ SIMPLE_JWT = {
     'AUTH_HEADER_TYPES': ('Bearer',),
 }
 
-EMAIL_HOST = config('EMAIL_HOST', default='smtp.sendgrid.net')
-EMAIL_PORT = config('EMAIL_PORT', default=587, cast=int)
-EMAIL_USE_TLS = env_bool('EMAIL_USE_TLS', default=True)
-EMAIL_USE_SSL = env_bool('EMAIL_USE_SSL', default=False)
-EMAIL_TIMEOUT = config('EMAIL_TIMEOUT', default=20, cast=int)
-EMAIL_HOST_USER = config('EMAIL_HOST_USER', default='apikey')
+
 EMAIL_HOST_PASSWORD = config('EMAIL_HOST_PASSWORD', default='')
 _EMAIL_PLACEHOLDERS = {'', 'your-email@gmail.com', 'your-email@example.com', 'your-app-password'}
 EMAIL_CREDENTIALS_CONFIGURED = bool(
-    EMAIL_HOST_PASSWORD and EMAIL_HOST_PASSWORD not in _EMAIL_PLACEHOLDERS)
+    EMAIL_HOST_PASSWORD and EMAIL_HOST_PASSWORD not in _EMAIL_PLACEHOLDERS
+)
 
 _CONFIGURED_FROM_EMAIL = config('DEFAULT_FROM_EMAIL', default='').strip()
 DEFAULT_FROM_EMAIL = (
     _CONFIGURED_FROM_EMAIL
     if _CONFIGURED_FROM_EMAIL and 'your-email@gmail.com' not in _CONFIGURED_FROM_EMAIL
-    else 'ILES System <sserunkuumajoshua641@gmail.com>'
+    else 'ILES Team <sserunkuumajoshua641@gmail.com>'
 )
+
 EMAIL_BACKEND = config(
     'EMAIL_BACKEND',
     default=(
-        'django.core.mail.backends.smtp.EmailBackend'
+        'anymail.backends.sendgrid.EmailBackend'
         if EMAIL_CREDENTIALS_CONFIGURED
         else 'django.core.mail.backends.console.EmailBackend'
     ),
 )
 
+# Connect the API backend to your SendGrid token
+ANYMAIL = {
+    "SENDGRID_API_KEY": EMAIL_HOST_PASSWORD,
+}
+
+
+
+# Clear the Anymail warning from your local and production terminals
+SILENCED_SYSTEM_CHECKS = ["anymail.W003"]
+warnings.filterwarnings(
+    "ignore", 
+    message="django-anymail has dropped official support for SendGrid"
+)
+
+
 FRONTEND_URL = config('FRONTEND_URL', default='http://localhost:5173')
 FRONTEND_PASSWORD_RESET_PATH = config('FRONTEND_PASSWORD_RESET_PATH', default='/reset-password')
 
-if not DEBUG:
+if not DEBUG and 'test' not in sys.argv:
     # Force all HTTP traffic to redirect to HTTPS
     # Render provides HTTPS automatically — this ensures no one
     # accidentally connects over plain HTTP
@@ -261,3 +274,5 @@ if not DEBUG:
     # CSRF cookie only travels over HTTPS, never plain HTTP
     CSRF_COOKIE_SECURE = True
     SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
+
+

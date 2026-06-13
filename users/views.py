@@ -395,7 +395,7 @@ class PasswordResetRequestView(APIView):
         # Always return 200 — prevents user enumeration attacks
         # and prevents 500 crashes when Render blocks SMTP on free tier
         response_data = {
-            "message": "If an account exists with that email, a password reset link has been sent."
+            "message": "Password reset email sent if account exists. Check inbox or spam folder to reset."
         }
         if settings.DEBUG:
             response_data["delivery"] = delivery

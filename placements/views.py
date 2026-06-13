@@ -37,7 +37,6 @@ class PlacementViewSet(viewsets.ModelViewSet):
         ).exclude(status="ACTIVE").update(status="ACTIVE")
 
     def get_queryset(self):
-        self._sync_statuses()
         user = self.request.user
         base = (
             InternshipPlacement.objects.select_related(
@@ -191,7 +190,6 @@ class PlacementViewSet(viewsets.ModelViewSet):
         )
 
     def retrieve(self, request, *args, **kwargs):
-        self._sync_statuses()
         instance = self.get_object()
         user = request.user
 

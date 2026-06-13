@@ -83,13 +83,18 @@ class InternshipPlacement(models.Model):
 
         update_fields = kwargs.get("update_fields")
         status_explicitly_saved = update_fields and "status" in update_fields
-        if (
-            not status_explicitly_saved
-            and self.start_date
-            and self.end_date
-            and self.status != "CANCELLED"
-        ):
-            self.status = self.calculate_status()
+        if not status_explicitly_saved and self.start_date and self.end_date and self.status != "CANCELLED":
+            if self.pk is None:
+                if self.status == "PENDING":
+                    self.status = self.calculate_status()
+            else:
+                current_status = (
+                    InternshipPlacement.objects.filter(pk=self.pk)
+                    .values_list("status", flat=True)
+                    .first()
+                )
+                if current_status == self.status:
+                    self.status = self.calculate_status()
         super().save(*args, **kwargs)
 
     def __str__(self):

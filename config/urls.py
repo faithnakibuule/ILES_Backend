@@ -1,16 +1,20 @@
 # config/urls.py
 from django.contrib import admin
 from django.urls import path, include
-from django.http import JsonResponse          # ← ADD THIS
-from users.views import CollegeViewSet, CourseViewSet
 import django.contrib.auth.views as auth_views
+from rest_framework.decorators import api_view, permission_classes
+from rest_framework.response import Response
+from rest_framework.permissions import AllowAny
+from users.views import CollegeViewSet, CourseViewSet
 from drf_spectacular.views import SpectacularAPIView, SpectacularSwaggerView, SpectacularRedocView
 
 # ── Lightweight health check — responds in under 1ms ──────────────────────
 # Render pings this to know the app is alive
 # Much faster than letting Render hit the root 404 handler
+@api_view(["GET"])
+@permission_classes([AllowAny])
 def health_check(request):
-    return JsonResponse({"status": "ok"}, status=200)
+    return Response({"status": "success"}, status=200)
 
 college_list = CollegeViewSet.as_view({
     'get': 'list',
