@@ -25,14 +25,16 @@ def capture_old_status(sender, instance, **kwargs):
 
 @receiver(post_save, sender=WeeklyLog)
 def handle_log_status_notifications(sender, instance, created, **kwargs):
-    if created:
-        return
-
     old_status = getattr(instance, '_old_status', None)
     new_status = instance.status
 
+    if created and new_status != "SUBMITTED":
+        return
+    if created and new_status == "SUBMITTED":
+        old_status = "DRAFT"
+
     # Skip if status did not actually change
-    if old_status == new_status:
+    if not created and old_status == new_status:
         return
 
     student = instance.intern
@@ -67,7 +69,12 @@ def handle_log_status_notifications(sender, instance, created, **kwargs):
                 is_read=False,
             )
             # Email the academic supervisor
-            send_log_reviewed_email(student, academic, instance.week_number)
+            send_log_reviewed_email(
+                student,
+                instance.placement.workplace_supervisor,
+                academic,
+                instance.week_number,
+            )
 
     # ── REVIEWED → APPROVED ───────────────────────────────────────────────────
     elif old_status == 'REVIEWED' and new_status == 'APPROVED':
@@ -85,7 +92,12 @@ def handle_log_status_notifications(sender, instance, created, **kwargs):
             is_read=False,
         )
         # Email the student their score
-        send_log_approved_email(student, instance.week_number, score)
+        send_log_approved_email(
+            student,
+            getattr(instance.placement, "academic_supervisor", None),
+            instance.week_number,
+            score,
+        )
 
     # ── SUBMITTED → DRAFT (sent back) ─────────────────────────────────────────
     elif old_status == 'SUBMITTED' and new_status == 'DRAFT':
@@ -106,4 +118,9 @@ def handle_log_status_notifications(sender, instance, created, **kwargs):
             is_read=False,
         )
         # Email the student the supervisor's comment
-        send_log_sent_back_email(student, instance.week_number, comment)
+        send_log_sent_back_email(
+            student,
+            instance.placement.workplace_supervisor,
+            instance.week_number,
+            comment,
+        )
