@@ -23,3 +23,7 @@ staticfiles/
 .DS_Store
 Thumbs.db
 db.sqlite3
+
+# Coverage and local db
+.coverage 
+iles_db 
